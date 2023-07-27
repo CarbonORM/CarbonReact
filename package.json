@@ -1,5 +1,5 @@
 {
-  "name": "@carbonorm/carbonnode",
+  "name": "@carbonorm/carbonreact",
   "version": "1.0.0",
   "main": "dist/CarbonReact.cjs.js",
   "browser": "dist/CarbonReact.umd.js",
