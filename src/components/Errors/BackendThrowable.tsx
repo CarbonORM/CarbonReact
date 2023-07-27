@@ -1,8 +1,9 @@
 import style from './style.module.scss';
-import DigApi from 'DigApi';
 import OutsideClickHandler from 'react-outside-click-handler';
 
 export default function BackendThrowable() {
+
+    const CarbonORM = require('CarbonORM').default;
 
     const bootstrap = CarbonORM.instance;
 

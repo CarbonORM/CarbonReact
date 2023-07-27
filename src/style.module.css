@@ -1,5 +1,4 @@
 /* https://stackoverflow.com/questions/41439028/webpack-is-renaming-my-scss-classes */
-
 html, body {
   height: 100vh;
   display: flex;
@@ -29,33 +28,33 @@ a {
   -webkit-box-shadow: var(--dig_primary_color);
 }
 
-#mainPage {
-
-}
-
 .main {
   display: flex;
   flex-direction: column;
   position: fixed;
   overflow-y: scroll;
   overflow-x: hidden;
-
-  &.loggedIn {
-    top: 120px;
-    height: calc(100vh - 120px);
-    @media (max-width: 768px){
-      margin-top: 60px;
-      top: 60px;
-    }
+}
+.main.loggedIn {
+  top: 120px;
+  height: calc(100vh - 120px);
+}
+@media (max-width: 768px) {
+  .main.loggedIn {
+    margin-top: 60px;
+    top: 60px;
   }
-
-  @media (min-width: 1024px) {
+}
+@media (min-width: 1024px) {
+  .main {
     top: 60px;
     overflow-y: scroll;
     overflow-x: hidden;
     height: calc(100vh - 60px);
   }
-  @media (max-width: 768px){
+}
+@media (max-width: 768px) {
+  .main {
     margin-top: 60px;
     overflow-x: hidden;
     position: relative;
@@ -73,51 +72,45 @@ a {
 .digSecondaryHeader {
   height: 60px;
   list-style: none;
-
-  &:hover {
-    background-color: var(--dig_neutral7);
-    transition: all 1s ease;
-  }
-
+}
+.digSecondaryHeader:hover {
+  background-color: var(--dig_neutral7);
+  transition: all 1s ease;
 }
 
 .hiddenAnchor {
   float: left;
-  clear: both
+  clear: both;
 }
 
 .mt60 {
   margin-top: 60px;
 }
 
-
 .notfound {
   height: 500px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center
+  justify-content: center;
 }
 
 .notfound_404 {
   position: relative;
   height: 240px;
-
-  h1 {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 252px;
-    font-weight: 900;
-    text-transform: uppercase;
-    letter-spacing: -40px;
-    margin-left: -20px;
-    margin-top: 20px
-  }
-
 }
-
+.notfound_404 h1 {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 252px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -40px;
+  margin-left: -20px;
+  margin-top: 20px;
+}
 
 .problemBox {
   text-align: center;
@@ -125,7 +118,7 @@ a {
   top: 30%;
   left: 50%;
   transform: translate(-50%, -50%);
-  color: white
+  color: white;
 }
 
 .maintenance {
@@ -133,10 +126,10 @@ a {
   /** background: url(assets/img/maintenance-hero.png) no-repeat center; */
   background-size: cover;
   position: relative;
-  padding-top: 600px
+  padding-top: 600px;
 }
 
-.floatingChatIcon{
+.floatingChatIcon {
   display: flex;
   position: fixed;
   bottom: 1.5em;
@@ -149,12 +142,9 @@ a {
   align-items: center;
   border: 2px solid var(--dig_neutral2);
   box-shadow: 0 2px 3px 1px #000;
-
-  svg{
-    g{
-      fill: var(--dig_secondary2);
-    }
-  }
+}
+.floatingChatIcon svg g {
+  fill: var(--dig_secondary2);
 }
 
 .fontWeightLight {
@@ -168,3 +158,5 @@ a {
 .fontWeightBold {
   font-weight: 700 !important;
 }
+
+/*# sourceMappingURL=style.module.css.map */

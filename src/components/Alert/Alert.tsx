@@ -1,11 +1,11 @@
 import classNames from "classnames";
-import DigApi from "DigApi";
+import CarbonORM from "CarbonORM";
 import {ReactNode} from "react";
-import getCurrentLoggedInUser from "api/hoc/getCurrentLoggedInUser";
 import Popup from "components/Popup/Popup";
-import DropVariables, {getStyles} from "variables/DropVariables";
+import  getStyles from "hoc/getStyles";
 import {faClose} from "@fortawesome/free-solid-svg-icons";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import isProduction from "variables/isProduction";
 
 //  'digBtnBlue': string;
 //   'digBtnGreen': string;
@@ -58,7 +58,7 @@ export default function Alert() {
             color: 'danger',
         }];
 
-        const hideExpandInformation = true === DropVariables.isProduction && false === (getCurrentLoggedInUser())?.user_is_admin
+        const hideExpandInformation = isProduction
 
         if (false === hideExpandInformation) {
             buttons.push({
@@ -171,7 +171,6 @@ export default function Alert() {
                 </h3>
                 <div onClick={handleClose}>
                     <FontAwesomeIcon
-                        style={{color: DropVariables.getPrimaryColor()}}
                         icon={faClose}
                         size={'xl'}/>
                 </div>

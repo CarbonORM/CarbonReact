@@ -21,11 +21,14 @@
     "resolveJsonModule": true,
     "declaration": true,
     "sourceMap": true,
-    "outDir": "./bin",
-    "jsx": "react"
+    "outDir": "./dist",
+    "jsx": "react-jsx"
   },
   "include": [
-      "src/**/*.ts",
-      "src/**/*.tsx",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/custom.d.ts",
+    "src/**/*",
+    "src/index.ts"
   ]
 }

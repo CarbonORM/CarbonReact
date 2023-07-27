@@ -1,5 +1,5 @@
 // @link https://www.benmvp.com/blog/mocking-window-location-methods-jest-jsdom/
-import AxiosContext from "variables/AxiosContext";
+import axiosInstance from "hoc/axiosInstance";
 
 export default function setUrl() {
 
@@ -24,7 +24,7 @@ export default function setUrl() {
     }
 
     // noinspection HttpUrlsUsage
-    AxiosContext.axiosInstance.defaults.baseURL = 'http' + (isGitHubActions ? 's' : '') + '://' + host + '/';
+    axiosInstance.defaults.baseURL = 'http' + (isGitHubActions ? 's' : '') + '://' + host + '/';
 
     Object.defineProperty(global.window, 'location', {
         writable: true,
@@ -34,8 +34,8 @@ export default function setUrl() {
             hostname: host,
             port: '80',
             protocol: 'http:',
-            href: AxiosContext.axiosInstance.defaults.baseURL,
-            origin: AxiosContext.axiosInstance.defaults.baseURL,
+            href: axiosInstance.defaults.baseURL,
+            origin: axiosInstance.defaults.baseURL,
             pathname: '/',
             search: '',
             toString: () => {
