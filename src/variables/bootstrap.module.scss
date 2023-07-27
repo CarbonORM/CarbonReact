@@ -1,0 +1,37 @@
+/** Drop-In Gaming
+ * @link https://stackoverflow.com/questions/57331645/how-to-get-value-of-grid-breakpoint-variable
+ * @link https://stackoverflow.com/questions/48924751/how-to-create-new-breakpoints-in-bootstrap-4-using-cdn
+ * import what we need to override
+ * TODO - test $grid-breakpoints
+ **/
+@import "../../node_modules/bootstrap/scss/_functions.scss";
+@import "../../node_modules/bootstrap/scss/_variables.scss";
+
+/**
+  * Set the overriding variables
+  * @link https://getbootstrap.com/docs/5.2/layout/grid/#:~:text=Grid%20breakpoints%20are%20based%20on,not%20the%20first%20xs%20breakpoint)
+  * @link https://stackoverflow.com/questions/37490537/twitter-bootstrap-add-media-queries-for-xxs-breakpoint
+  **/
+
+$grid-breakpoints: (
+        xxs: 0,
+        xs: 375px,
+        sm: 576px,
+        md: 768px,
+        lg: 992px,
+        xl: 1200px,
+        xxl: 1400px
+);
+
+$container-max-widths: (
+        xxs: 374px,
+        xs: 375px,  // idk someone help - @link https://developer.apple.com/library/archive/documentation/DeviceInformation/Reference/iOSDeviceCompatibility/Displays/Displays.html
+        sm: 576px,
+        md: 768px,
+        lg: 992px,
+        xl: 1200px,
+        xxl: 1400px
+);
+
+/* override the !default vars with the values we set above */
+@import "../../node_modules/bootstrap/scss/bootstrap";

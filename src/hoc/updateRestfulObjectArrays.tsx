@@ -1,8 +1,8 @@
-import DigApi, {
+import CarbonORM, {
     iCarbonORMState,
     iRestfulObjectArrayTypes,
     tRestfulObjectValues
-} from "DigApi";
+} from "CarbonORM";
 
 
 export enum eUpdateInsertMethod {
@@ -28,7 +28,7 @@ export default function updateRestfulObjectArray<ObjectType extends tRestfulObje
  insertUpdateOrder: eUpdateInsertMethod = eUpdateInsertMethod.LAST,
  callback?: () => void): void {
 
-    const bootstrap: DigApi = CarbonORM.instance;
+    const bootstrap: CarbonORM = CarbonORM.instance;
 
     return bootstrap.setState((previousBootstrapState): {} => {
 

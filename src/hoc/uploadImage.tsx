@@ -2,17 +2,7 @@
 // @link https://www.tutorialspoint.com/convert-image-to-data-uri-with-javascript
 import {ChangeEvent} from "react";
 import {toast} from "react-toastify";
-import postPosts from "api/rest/postPosts";
-import DigApi from "DigApi";
 
-
-// quite possibly one of the sexiest files we have
-
-export interface iUploadCompImage {
-    comp_id: number,
-    team_id?: number,
-    scorebox?: number
-}
 
 export async function toDataURL(src: string, fileType: string, callback: (dataUriEncoded: string) => void): Promise<void> {
 
@@ -50,9 +40,8 @@ export async function toDataURL(src: string, fileType: string, callback: (dataUr
 
 }
 
-export function uploadImageChange(post_excerpt: string, event: ChangeEvent<HTMLInputElement>,
-prePost?: (postData : any) => any,
-uploadCallback: ((ID: number, dataUriBase64: string) => void) | undefined = undefined) {
+export function uploadImageChange(event: ChangeEvent<HTMLInputElement>,
+uploadCallback: ((imageDataUri: string) => void)) {
 
     if (event.target.files !== null && event.target.files[0]) {
 
@@ -78,36 +67,7 @@ uploadCallback: ((ID: number, dataUriBase64: string) => void) | undefined = unde
 
                 // @link https://github.com/palantir/tslint/issues/4653
                 // @link https://github.com/Microsoft/TypeScript/issues/13376#issuecomment-273289748
-                void toDataURL(URL.createObjectURL(file), file.type, (dataUriEncoded => {
-                    let postData = {
-                        guid: '',
-                        post_author: CarbonORM.instance.state.id,
-                        post_content: dataUriEncoded,
-                        post_content_filtered: '',
-                        post_excerpt: post_excerpt,
-                        post_title: 'Original file name: (' + file.name + ') type: (' + file.type + ') and size: (' + file.size + ') bytes',
-                        post_status: 'inherit',
-                        comment_status: 'open',
-                        ping_status: 'open',
-                        to_ping: '',
-                        pinged: '',
-                        post_name: file.name,
-                        post_parent: 0,
-                        post_type: 'attachment',
-                        post_mime_type: file.type, // we convert to jpeg using canvas.toDataURL
-                        success: "Image uploaded successfully!",
-                        uploadCallback: uploadCallback
-                    };
-
-                    if (undefined !== prePost && 'function' === typeof prePost) {
-
-                        postData = prePost(postData)
-
-                    }
-
-                    postPosts(postData);
-
-                }));
+                void toDataURL(URL.createObjectURL(file), file.type, uploadCallback);
 
             }
 
@@ -119,38 +79,21 @@ uploadCallback: ((ID: number, dataUriBase64: string) => void) | undefined = unde
 
 
 // dataUriEncoded is the base64 encoded string which is posted in column post_content
-export default function uploadImage(post_excerpt: string, prePost?: (postData : any) => any,
-                uploadCallback: ((ID: number, dataUriBase64: string) => void) | undefined = undefined) {
+export default function uploadImage(uploadCallback: (dataUriBase64: string) => void) {
     return () => {
         const input: HTMLInputElement = document.createElement('input')
         input.type = 'file'
         input.accept = 'image/*'
         input.onchange = (e: Event): any => {
-            uploadImageChange(post_excerpt, e as unknown as ChangeEvent<HTMLInputElement>, prePost, uploadCallback)
+            uploadImageChange(e as unknown as ChangeEvent<HTMLInputElement>, uploadCallback)
         }
         input.click()
     }
 }
 
-export function uploadCompImage(post_excerpt: string, comp_data: iUploadCompImage,
-                uploadCallback: ((ID: number, dataUriBase64: string) => void) | undefined = undefined) {
-
-    return uploadImage(post_excerpt, (postData) => {
-        if (comp_data !== undefined) {
-            // comp id is required, so it will always be here
-            postData['comp_id'] = comp_data.comp_id;
-
-            if (comp_data.team_id !== undefined && comp_data.scorebox !== undefined) {
-                postData['team_id'] = comp_data.team_id;
-                postData['scorebox'] = comp_data.scorebox;
-            }
-        }
-
-        return postData;
-    }, uploadCallback)
 
 
-}
+
 
 
 

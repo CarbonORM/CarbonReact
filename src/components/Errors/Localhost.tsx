@@ -1,3 +1,5 @@
+import React from 'react';
+
 
 export default function Localhost() {
 
@@ -23,7 +25,7 @@ export default function Localhost() {
         target.style.boxShadow = '-2px 0px 7px 2px #e13570';
     };
 
-    return <>
+    return <React.Fragment>
         <h1 style={center}>Whoa, where we dropping?</h1>
         <a onMouseEnter={onMouseEnter}
            onMouseLeave={onMouseLeave}
@@ -31,6 +33,6 @@ export default function Localhost() {
         <a onMouseEnter={onMouseEnter}
            onMouseLeave={onMouseLeave}
            style={center} href={'//local.dropingaming.com:3000/'}>COM</a>
-    </>;
+    </React.Fragment>;
 
 }

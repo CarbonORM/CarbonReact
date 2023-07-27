@@ -2,51 +2,64 @@
   "name": "@carbonorm/carbonnode",
   "version": "1.0.0",
   "main": "dist/carbonnode.cjs.js",
-  "module": "dist/carbonnode.esm.js",
+  "module": "dist/",
   "browser": "dist/carbonnode.umd.js",
   "peerDependencies": {
-    "axios": "^1.4.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-toastify": "^9.1.3",
-    "react-router-dom": "^6.14.2",
-    "classnames": "^2.3.2"
-  },
-  "dependencies": {
     "@carbonorm/carbonnode": "^1.0.0",
     "axios": "^1.4.0",
+    "bootstrap": "^5.3.1",
+    "classnames": "^2.3.2",
+    "qs": "^6.11.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-toastify": "^9.1.3",
     "react-router-dom": "^6.14.2",
-    "classnames": "^2.3.2",
-    "qs": "^6.11.1"
+    "react-toastify": "^9.1.3"
   },
   "devDependencies": {
-    "@types/node": "^18.15.11",
-    "@types/react": "^18.0.32",
-    "@types/react-dom": "^18.0.11",
-    "@types/styled-components": "5.1.24",
+    "@carbonorm/carbonnode": "^1.0.0",
     "@drop-in-gaming/barrelsby": "^0.0.2",
     "@open-wc/building-rollup": "^3.0.1",
     "@rollup/plugin-commonjs": "^11.0.1",
     "@rollup/plugin-node-resolve": "^7.0.0",
     "@rollup/plugin-typescript": "^11.1.2",
     "@types/ms": "^0.7.31",
+    "@types/node": "^18.15.11",
+    "@types/react": "^18.0.32",
+    "@types/react-dom": "^18.0.11",
+    "@types/styled-components": "5.1.24",
+    "autoprefixer": "^10.4.14",
+    "axios": "^1.4.0",
+    "bootstrap": "^5.3.1",
+    "classnames": "^2.3.2",
     "deepmerge": "^4.3.1",
+    "postcss": "^8.4.27",
+    "qs": "^6.11.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-outside-click-handler": "^1.3.0",
+    "react-router-dom": "^6.14.2",
+    "react-toastify": "^9.1.3",
     "rimraf": "^5.0.1",
     "rollup": "^3.26.3",
+    "rollup-plugin-postcss": "^4.0.2",
+    "sass": "^1.64.1",
     "typescript": "^5.1.6"
   },
   "scripts": {
     "c6": "wget https://raw.githubusercontent.com/RichardTMiles/CarbonPHP/lts/view/C6.tsx -O src/variables/C6.tsx",
-    "build": "npm run build:index && rollup -c",
+    "build": "npm run build:css && npm run build:index && rollup -c",
     "dev": "rollup -c -w",
     "test": "node test/test.js",
     "pretest": "npm run build",
-    "build:index": "npx barrelsby -d ./src --delete --exclude '(jestHoc|\\.test|\\.d).(js|tsx?)$' --exportDefault --verbose"
+    "build:index": "npx barrelsby -d ./src --delete --exclude '(jestHoc|\\.test|\\.d).(js|tsx?)$' --exportDefault --verbose",
+    "build:css": "sass ./src:./src && tcm src"
   },
   "files": [
     "dist"
-  ]
+  ],
+  "dependencies": {
+    "@fortawesome/free-solid-svg-icons": "^6.4.0",
+    "@fortawesome/react-fontawesome": "^0.2.0",
+    "react-loading-skeleton": "^3.3.1"
+  }
 }

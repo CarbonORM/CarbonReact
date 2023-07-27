@@ -1,8 +1,7 @@
 import classNames from "classnames";
+import getStyles, {getRootStyleValue} from "hoc/getStyles";
 import {ReactNode} from "react";
 import Skeleton, {SkeletonTheme} from "react-loading-skeleton";
-import {getStyles} from "src/variables/DropVariables";
-import DropVariables from "src/variables/DropVariables";
 
 interface iLoading {
     lineHeight?: number,
@@ -15,7 +14,7 @@ export default function Loading(props: iLoading) {
 
     const dig = getStyles();
 
-    const primaryColor = DropVariables.getPrimaryColor()
+    const primaryColor = getRootStyleValue()
 
     return <div className={classNames(dig.my5, dig.px3,dig.pb5, dig.container)} style={{lineHeight: props.lineHeight || 4}}>
         <SkeletonTheme baseColor={primaryColor} highlightColor="#444">
