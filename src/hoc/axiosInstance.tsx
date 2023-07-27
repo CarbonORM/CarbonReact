@@ -1,6 +1,6 @@
 import axios, {AxiosInstance, AxiosRequestConfig, AxiosRequestHeaders, AxiosResponse} from "axios";
 import {isTest, isVerbose} from "@carbonorm/carbonnode";
-import CarbonORM from "CarbonORM";
+import CarbonReact from "CarbonReact";
 import {iAlert} from "components/Alert/Alert";
 import Qs from "qs";
 
@@ -11,7 +11,7 @@ import addValidSQL from "hoc/addValidSQL";
 
 export function HandleResponseCodes(data: any): void {
 
-    const bootstrap: CarbonORM = CarbonORM.instance;
+    const bootstrap: CarbonReact = CarbonReact.instance;
 
     if (undefined === data?.data?.alert) {
         return;
@@ -183,7 +183,7 @@ function axiosInterceptors(axios: AxiosInstance): void {
 
                 }
 
-                CarbonORM.instance.setState((previous) => (
+                CarbonReact.instance.setState((previous) => (
                     {
                         backendThrowable: [
                             ...previous.backendThrowable,
@@ -287,7 +287,7 @@ function axiosInterceptors(axios: AxiosInstance): void {
                     // if string try to see if malformed json
                     const jsonErrors = parseMultipleJson(error?.response?.data || error?.response || error)
 
-                    CarbonORM.instance.setState((previous) => (
+                    CarbonReact.instance.setState((previous) => (
                         {
                             backendThrowable: [
                                 ...previous.backendThrowable,

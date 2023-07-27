@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import CarbonORM from "CarbonORM";
+import CarbonReact from "CarbonReact";
 import {ReactNode} from "react";
 import Popup from "components/Popup/Popup";
 import  getStyles from "hoc/getStyles";
@@ -20,7 +20,7 @@ export interface iAlertButtonOptions {
 
 export function addAlert(props: iAlert) {
 
-    CarbonORM.instance.setState(previousState => ({
+    CarbonReact.instance.setState(previousState => ({
         alertsWaiting: previousState.alertsWaiting.length === 0
             ? [props]
             : [...previousState.alertsWaiting, props]
@@ -45,7 +45,7 @@ export interface iAlert {
 
 export default function Alert() {
 
-    const {alertsWaiting, backendThrowable} = CarbonORM.instance.state
+    const {alertsWaiting, backendThrowable} = CarbonReact.instance.state
 
     let alert: iAlert | undefined = undefined;
 
@@ -67,7 +67,7 @@ export default function Alert() {
             })
         }
 
-        const backendThrowable = CarbonORM.instance.state.backendThrowable[0]
+        const backendThrowable = CarbonReact.instance.state.backendThrowable[0]
 
         alert = {
             title: "Oh no! An issue occurred!",
@@ -82,7 +82,7 @@ export default function Alert() {
 
                 if (value === 'Expand') {
 
-                    CarbonORM.instance.setState(previousState => {
+                    CarbonReact.instance.setState(previousState => {
 
                         let backendThrowable = previousState.backendThrowable.pop()
 
@@ -100,7 +100,7 @@ export default function Alert() {
                     })
 
                 } else {
-                    CarbonORM.instance.setState(previousState => ({
+                    CarbonReact.instance.setState(previousState => ({
                         backendThrowable: previousState.backendThrowable.slice(1)
                     }))
                 }
@@ -121,7 +121,7 @@ export default function Alert() {
 
     const timeout = alert?.timeout || 15000
 
-    const bootstrap = CarbonORM.instance
+    const bootstrap = CarbonReact.instance
 
     const dig = getStyles()
 
@@ -160,10 +160,10 @@ export default function Alert() {
         }}>
             <div className={classNames(dig.modalHeader, dig.rounded0, dig.border0, {
                 // icon?: "warning" | "error" | "success" | "info" | "question"
-                [dig.digBgCardHeader]: "info" === alert.icon || alert.icon === undefined || alert.icon === null,
-                [dig.digBgDarkgreen]: "success" === alert.icon,
-                [dig.digBgOrange]: "warning" === alert.icon,
-                [dig.digBgOrange]: "error" === alert.icon, // TODO - change to red
+                [dig.bg_primary]: "info" === alert.icon || alert.icon === undefined || alert.icon === null,
+                [dig.bg_success]: "success" === alert.icon,
+                [dig.bg_warning]: "warning" === alert.icon,
+                [dig.bg_danger]: "error" === alert.icon, // TODO - change to red
                 [dig.bgPrimary]: "question" === alert.icon,
             })}>
                 <h3 className={classNames(dig.modalTitle, dig.textDark)} id="staticBackdropLabel">
@@ -175,25 +175,25 @@ export default function Alert() {
                         size={'xl'}/>
                 </div>
             </div>
-            <div className={classNames(dig.modalBody, dig.border0, dig.digBgNeutral8, dig.digTextWhite)}>
+            <div className={classNames(dig.modalBody, dig.border0, dig.textWhite)}>
                 <div className={dig.textCenter}>
                     {alert.text}
                     {alert.component}
                 </div>
             </div>
             {undefined !== alert.buttons &&
-                <div className={classNames(dig.modalFooter, dig.digBgNeutral7, dig.border0, dig.rounded0)}>
-                    {alert.footerText && <div className={classNames(dig.textCenter, dig.digTextWhite)}>{alert.footerText}</div>}
+                <div className={classNames(dig.modalFooter, dig.border0, dig.rounded0)}>
+                    {alert.footerText && <div className={classNames(dig.textCenter, dig.textWhite)}>{alert.footerText}</div>}
 
                     {alert.buttons?.map((button: iAlertButtonOptions, index: number) => {
 
                         return <button key={index}
                                        className={classNames(dig.btn, dig.btnLg, {
                                            // todo - color: "default" | "primary" | "secondary" | "inherit" | "danger" | "info" | "success" | "warning" | undefined,
-                                           [dig.digBtnGreen]: "success" === button.color,
-                                           [dig.digBtnRed]: "danger" === button.color,
-                                           [dig.digBtnBlue]: "primary" === button.color,
-                                           [dig.digBtnLightRed]: "warning" === button.color,
+                                           [dig.bg_success]: "success" === button.color,
+                                           [dig.bg_danger]: "danger" === button.color,
+                                           [dig.bg_primary]: "primary" === button.color,
+                                           [dig.bg_warning]: "warning" === button.color,
                                        }, "btn-Yes", dig.rounded0)}
                                        onClick={() => {
                                            handleClose()

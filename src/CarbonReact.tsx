@@ -37,10 +37,10 @@ export interface iCarbonORMState extends iRestfulObjectArrayTypes {
     backendThrowable: any[],
 }
 
-export default class CarbonORM extends React.Component<{
+export default class CarbonReact extends React.Component<{
     children?: ReactNode | ReactNode[],
 }, iCarbonORMState> {
-    static instance: CarbonORM;
+    static instance: CarbonReact;
     static lastLocation = window.location.pathname;
 
     // @link https://github.com/welldone-software/why-did-you-render
@@ -51,7 +51,7 @@ export default class CarbonORM extends React.Component<{
 
         super(props);
 
-        CarbonORM.instance = this;
+        CarbonReact.instance = this;
 
         // This should only ever be done here, when the full state is being trashed.
         clearCache({
@@ -90,8 +90,8 @@ export default class CarbonORM extends React.Component<{
     }
 
     componentDidUpdate(_prevProps: Readonly<any>, _prevState: Readonly<iCarbonORMState>, _snapshot?: any) {
-        if (CarbonORM.lastLocation !== location.pathname) {
-            CarbonORM.lastLocation = location.pathname;
+        if (CarbonReact.lastLocation !== location.pathname) {
+            CarbonReact.lastLocation = location.pathname;
             const websocket = this.state.websocket;
             if (websocket?.readyState === WebSocket.OPEN) {
                 websocket.send(location.pathname);

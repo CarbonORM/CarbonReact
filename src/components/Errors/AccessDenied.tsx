@@ -1,6 +1,6 @@
 
 import React from 'react';
-import styles from "style.module.scss"
+import styles from "../../style.module.css"
 
 export default function AccessDenied ({children} : {children?: React.ReactNode}) {
 

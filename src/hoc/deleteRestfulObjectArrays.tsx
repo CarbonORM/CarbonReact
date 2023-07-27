@@ -1,4 +1,4 @@
-import CarbonORM, {iCarbonORMState, iRestfulObjectArrayTypes, tRestfulObjectValues} from "CarbonORM";
+import CarbonReact, {iCarbonORMState, iRestfulObjectArrayTypes, tRestfulObjectValues} from "CarbonReact";
 
 
 //ObjectType, UniqueIdType extends keyof ObjectType
@@ -8,7 +8,7 @@ export default function deleteRestfulObjectArrays<ObjectType extends tRestfulObj
  uniqueObjectId: keyof ObjectType,
  callback?: () => void): void {
 
-    return CarbonORM.instance.setState((previousBootstrapState): {} => {
+    return CarbonReact.instance.setState((previousBootstrapState): {} => {
 
         let newOrReplacementData: ObjectType[] = dataOrCallback instanceof Function ? dataOrCallback(previousBootstrapState) : dataOrCallback;
 

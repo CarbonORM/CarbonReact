@@ -1,6 +1,6 @@
 import classNames from "classnames";
-import BootstrapStyle from "variables/bootstrap.module.scss"
-import DropInGamingStyles from "style.module.scss"
+import BootstrapStyle from "variables/bootstrap.module.css"
+import DropInGamingStyles from "style.module.css"
 
 export const getRootStyleValue = (property = '--dig_primary_color') : string => {
 

@@ -2,16 +2,39 @@ import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import typescript from '@rollup/plugin-typescript';
 import postcss from 'rollup-plugin-postcss';
+import rollupScss from "rollup-plugin-scss";
+import includePaths from 'rollup-plugin-includepaths';
+import simplevars from 'postcss-simple-vars';
+import nested from 'postcss-nested';
+import cssnext from 'postcss-cssnext';
+import cssnano from 'cssnano';
+import scss from "scss";
 import autoprefixer from 'autoprefixer';
 
 import {readFileSync} from "fs";
 
 const pkg = JSON.parse(readFileSync('package.json', {encoding: 'utf8'}));
+const config = JSON.parse(readFileSync('tsconfig.json', {encoding: 'utf8'}));
 
 // @link https://stackoverflow.com/questions/63128597/how-to-get-rid-of-the-rollup-plugin-typescript-rollup-sourcemap-option-must
-const production = !process.env.ROLLUP_WATCH;
+//const production = !process.env.ROLLUP_WATCH;
+
+const postCss = postcss({
+    /*plugins: [autoprefixer()],
+    sourceMap: true,*/
+    plugins: [
+        simplevars(),
+    ],
+    extensions: ['.css'],
+    extract: false,
+    modules: true,
+    syntax: 'postcss-scss',
+    use: ['sass'],
+})
+
 
 const plugins = [
+    includePaths({paths: [config.compilerOptions.baseUrl]}),
     resolve({
         extensions: ['.js', '.jsx', '.ts', '.tsx']
     }),
@@ -23,21 +46,27 @@ const plugins = [
         },
     }),
     typescript({
-        sourceMap: !production,
-        inlineSources: !production
+        sourceMap: true, // !production,
+        inlineSources: false, // !production
     }),
-    postcss({
-        plugins: [autoprefixer()],
-        sourceMap: true,
-        extract: true,
-        minimize: true
-    }),
+    // rollupScss({
+    //     output: 'dist/carbon-react.css',
+    //     outputStyle: 'compressed',
+    //     verbose: true,
+    //     sourceMap: false,
+    //     failOnError: true,
+    //     runtime: scss,
+    //     processor: () => postCss,
+    // }),
+    postCss
 ]
 
 // noinspection JSUnresolvedReference
 const externals = [
-    ...Object.keys(pkg.peerDependencies),
-    ...Object.keys(pkg.dependencies)
+    ...Object.keys(pkg.dependencies || {}),
+    ...Object.keys(pkg.devDependencies || {}),
+    ...Object.keys(pkg.peerDependencies || {}),
+    ///.*\\.scss$/
 ]
 
 console.log('externals', externals)
@@ -59,10 +88,11 @@ export default [
         input: 'src/index.ts',
         external: externals,
         output: {
-            name: 'carbonNode',
+            name: 'CarbonReact',
             file: pkg.browser,
             format: 'umd',
-            globals: globals
+            globals: globals,
+            sourcemap: true
         },
         plugins: plugins
     },
@@ -79,8 +109,8 @@ export default [
         external: externals,
         plugins: plugins,
         output: [
-            {file: pkg.main, format: 'cjs'},
-            {preserveModules: true, dir: pkg.module, format: 'es'}
+            {file: pkg.main, format: 'cjs', sourcemap: true},
+            {preserveModules: true, dir: pkg.module, format: 'es', sourcemap: true}
         ]
     }
 ];

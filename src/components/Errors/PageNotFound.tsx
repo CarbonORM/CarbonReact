@@ -1,5 +1,5 @@
 
-import classes from "style.module.scss"
+import classes from "style.module.css"
 
 export default function PageNotFound() {
 
