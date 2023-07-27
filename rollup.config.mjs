@@ -2,13 +2,9 @@ import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import typescript from '@rollup/plugin-typescript';
 import postcss from 'rollup-plugin-postcss';
-import rollupScss from "rollup-plugin-scss";
 import includePaths from 'rollup-plugin-includepaths';
 import simplevars from 'postcss-simple-vars';
 import nested from 'postcss-nested';
-import cssnext from 'postcss-cssnext';
-import cssnano from 'cssnano';
-import scss from "scss";
 import autoprefixer from 'autoprefixer';
 
 import {readFileSync} from "fs";
@@ -20,13 +16,14 @@ const config = JSON.parse(readFileSync('tsconfig.json', {encoding: 'utf8'}));
 //const production = !process.env.ROLLUP_WATCH;
 
 const postCss = postcss({
-    /*plugins: [autoprefixer()],
-    sourceMap: true,*/
+    sourceMap: true,
     plugins: [
+        autoprefixer(),
         simplevars(),
+        nested()
     ],
     extensions: ['.css'],
-    extract: false,
+    extract: true,
     modules: true,
     syntax: 'postcss-scss',
     use: ['sass'],
@@ -49,15 +46,6 @@ const plugins = [
         sourceMap: true, // !production,
         inlineSources: false, // !production
     }),
-    // rollupScss({
-    //     output: 'dist/carbon-react.css',
-    //     outputStyle: 'compressed',
-    //     verbose: true,
-    //     sourceMap: false,
-    //     failOnError: true,
-    //     runtime: scss,
-    //     processor: () => postCss,
-    // }),
     postCss
 ]
 
