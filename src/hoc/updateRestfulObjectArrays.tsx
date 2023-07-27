@@ -1,8 +1,8 @@
-import CarbonORM, {
+import CarbonReact, {
     iCarbonORMState,
     iRestfulObjectArrayTypes,
     tRestfulObjectValues
-} from "CarbonORM";
+} from "CarbonReact";
 
 
 export enum eUpdateInsertMethod {
@@ -28,7 +28,7 @@ export default function updateRestfulObjectArray<ObjectType extends tRestfulObje
  insertUpdateOrder: eUpdateInsertMethod = eUpdateInsertMethod.LAST,
  callback?: () => void): void {
 
-    const bootstrap: CarbonORM = CarbonORM.instance;
+    const bootstrap: CarbonReact = CarbonReact.instance;
 
     return bootstrap.setState((previousBootstrapState): {} => {
 

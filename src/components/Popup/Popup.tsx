@@ -42,7 +42,7 @@ export default function Popup({
                 )}
             >
                 <OutsideClickHandler onOutsideClick={() => handleClose()}>
-                    <div className={classNames(dig.modalContent, dig.bgTransparent, dig.modalDialogScrollable, dig.walletModal)}>
+                    <div className={classNames(dig.modalContent, dig.bgTransparent, dig.modalDialogScrollable)}>
                         {children}
                     </div>
                 </OutsideClickHandler>
