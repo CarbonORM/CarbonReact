@@ -22,7 +22,7 @@ const postCss = postcss({
         simplevars(),
         nested()
     ],
-    extensions: ['.css'],
+    extensions: ['.css', '.scss'],
     extract: true,
     modules: true,
     syntax: 'postcss-scss',
