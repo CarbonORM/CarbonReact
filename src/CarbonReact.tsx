@@ -37,11 +37,22 @@ export interface iCarbonORMState extends iRestfulObjectArrayTypes {
     backendThrowable: any[],
 }
 
-export default class CarbonReact extends React.Component<{
+export default class CarbonReact<P = {}, S = {}> extends React.Component<{
     children?: ReactNode | ReactNode[],
-}, iCarbonORMState> {
+} & P, iCarbonORMState & S> {
+
     static instance: CarbonReact;
+
     static lastLocation = window.location.pathname;
+
+    public readonly state = {
+        carbons: undefined,
+        alertsWaiting: [],
+        backendThrowable: [],
+        websocketData: [],
+        websocketEvents: [],
+        websocketMounted: false,
+    } as iCarbonORMState & S;
 
     // @link https://github.com/welldone-software/why-did-you-render
     // noinspection JSUnusedGlobalSymbols
@@ -58,20 +69,13 @@ export default class CarbonReact extends React.Component<{
             ignoreWarning: true
         });
 
+
         /** We can think of our app as having one state; this state.
          * Long-term, I'd like us to store this state to local storage and only load updates on reload...
          * Class based components are far easier to manage state in local storage and pass state down to children.
          * Children, if not faced with a local storage or other complexity should be a functional component. Functional
          * components' tend to be shorter syntactically and bonus points if it's stateless.
          **/
-        this.state = {
-            carbons: undefined,
-            alertsWaiting: [],
-            backendThrowable: [],
-            websocketData: [],
-            websocketEvents: [],
-            websocketMounted: false
-        };
 
     }
 
