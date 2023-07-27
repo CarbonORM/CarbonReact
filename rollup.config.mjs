@@ -17,6 +17,7 @@ const config = JSON.parse(readFileSync('tsconfig.json', {encoding: 'utf8'}));
 
 const postCss = postcss({
     sourceMap: true,
+
     plugins: [
         autoprefixer(),
         simplevars(),
@@ -24,7 +25,9 @@ const postCss = postcss({
     ],
     extensions: ['.css', '.scss'],
     extract: true,
-    modules: true,
+    modules: {
+        localsConvention: 'camelCase',
+    },
     syntax: 'postcss-scss',
     use: ['sass'],
 })
