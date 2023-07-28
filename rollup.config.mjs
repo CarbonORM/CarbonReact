@@ -104,8 +104,8 @@ export default [
         external: externals,
         plugins: plugins,
         output: [
-            {file: pkg.main, format: 'cjs', sourcemap: true},
-            {preserveModules: true, dir: pkg.module, format: 'esm', sourcemap: true}
+            {file: pkg.main, format: 'cjs', globals: globals, sourcemap: true},
+            {preserveModules: true, dir: pkg.module, format: 'esm', globals: globals, sourcemap: true}
         ]
     }
 ];
