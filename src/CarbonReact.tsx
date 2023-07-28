@@ -45,15 +45,6 @@ export default class CarbonReact<P = {}, S = {}> extends React.Component<{
 
     static lastLocation = window.location.pathname;
 
-    state = {
-        carbons: undefined,
-        alertsWaiting: [],
-        backendThrowable: [],
-        websocketData: [],
-        websocketEvents: [],
-        websocketMounted: false,
-    } as iCarbonORMState & S;
-
     // @link https://github.com/welldone-software/why-did-you-render
     // noinspection JSUnusedGlobalSymbols
     static whyDidYouRender = true;
@@ -61,6 +52,15 @@ export default class CarbonReact<P = {}, S = {}> extends React.Component<{
     constructor(props) {
 
         super(props);
+
+        this.state = {
+            carbons: undefined,
+            alertsWaiting: [],
+            backendThrowable: [],
+            websocketData: [],
+            websocketEvents: [],
+            websocketMounted: false,
+        } as unknown as iCarbonORMState & S;
 
         CarbonReact.instance = this;
 
