@@ -6,8 +6,8 @@ import includePaths from 'rollup-plugin-includepaths';
 import simpleVars from 'postcss-simple-vars';
 import nested from 'postcss-nested';
 import autoprefixer from 'autoprefixer';
-import dts from 'rollup-plugin-dts';
 import {readFileSync} from "fs";
+import nodeResolve from "@rollup/plugin-node-resolve";
 
 const pkg = JSON.parse(readFileSync('package.json', {encoding: 'utf8'}));
 const config = JSON.parse(readFileSync('tsconfig.json', {encoding: 'utf8'}));
@@ -16,33 +16,7 @@ const config = JSON.parse(readFileSync('tsconfig.json', {encoding: 'utf8'}));
 //const production = !process.env.ROLLUP_WATCH;
 
 
-const postCss = postcss({
-    sourceMap: true,
-    plugins: [
-        autoprefixer(),
-        simpleVars(),
-        nested()
-    ],
-    extensions: ['.css', '.scss'],
-    extract: true,
-    modules: {
-        localsConvention: 'all',
-        generateScopedName: '[hash:base64:7]',
-    },
-    syntax: 'postcss-scss',
-    use: ['sass'],
-})
-
-
 const plugins = [
-    includePaths({
-        paths: [
-            config.compilerOptions.baseUrl
-        ]
-    }),
-    resolve({
-        extensions: ['.js', '.jsx', '.ts', '.tsx']
-    }),
     commonjs({
         namedExports: {
             // This is needed because react/jsx-runtime exports jsx on the module export.
@@ -50,11 +24,38 @@ const plugins = [
             'react/jsx-runtime': ['jsx', 'jsxs', 'Fragment'],
         },
     }),
+    includePaths({
+        paths: [
+            config.compilerOptions.baseUrl
+        ]
+    }),
+    nodeResolve({
+        'browser': true,
+    }),
+    resolve({
+        extensions: ['.js', '.jsx', '.ts', '.tsx']
+    }),
+
     typescript({
         sourceMap: true, // !production,
         inlineSources: false, // !production
     }),
-    postCss
+    postcss({
+        sourceMap: true,
+        plugins: [
+            autoprefixer(),
+            simpleVars(),
+            nested()
+        ],
+        extensions: ['.css', '.scss'],
+        extract: true,
+        modules: {
+            localsConvention: 'all',
+            generateScopedName: '[hash:base64:7]',
+        },
+        syntax: 'postcss-scss',
+        use: ['sass'],
+    })
 ]
 
 // noinspection JSUnresolvedReference
@@ -77,41 +78,22 @@ externals.forEach((external) => {
 console.log(globals)
 
 export default [
-    // browser-friendly UMD build
     {
-        input: 'src/index.ts',
-        external: externals,
-        output: {
-            name: 'CarbonReact',
-            file: pkg.browser,
-            format: 'umd',
-            globals: globals,
-            sourcemap: true
-        },
-        plugins: plugins
-    },
-
-    // CommonJS (for Node) and ES module (for bundlers) build.
-    // (We could have three entries in the configuration array
-    // instead of two, but it's quicker to generate multiple
-    // builds from a single configuration where possible, using
-    // an array for the `output` option, where we can specify
-    // `file` and `format` for each target)
-    {
-
         input: 'src/index.ts',
         external: externals,
         plugins: plugins,
         output: [
+            // browser-friendly UMD build
+            //{name: 'CarbonReact', file: pkg.browser, format: 'umd', globals: globals, sourcemap: true},
+            // CommonJS (for Node) and ES module (for bundlers) build.
+            // (We could have three entries in the configuration array
+            // instead of two, but it's quicker to generate multiple
+            // builds from a single configuration where possible, using
+            // an array for the `output` option, where we can specify
+            // `file` and `format` for each target)
             {file: pkg.main, format: 'cjs', globals: globals, sourcemap: true},
-            {file: pkg.module, format: 'esm', globals: globals, sourcemap: true}
+            {file: pkg.module, format: 'es', globals: globals, sourcemap: true}
         ]
     },
 
-    {
-        input: 'dist/esm/index.d.ts',
-        output: [{ file: 'dist/index.d.ts', format: "esm" }],
-        external: [/\.css$/],
-        plugins: [dts()],
-    },
 ];
