@@ -1,11 +1,11 @@
 {
   "name": "@carbonorm/carbonreact",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "dist/CarbonReact.cjs.js",
   "browser": "dist/CarbonReact.umd.js",
   "module": "dist/",
   "peerDependencies": {
-    "@carbonorm/carbonnode": "^1.0.0",
+    "@carbonorm/carbonnode": "^1.0.1",
     "axios": "^1.4.0",
     "bootstrap": "^5.3.1",
     "classnames": "^2.3.2",
@@ -17,6 +17,8 @@
   },
   "devDependencies": {
     "@carbonorm/carbonnode": "^1.0.0",
+    "@carbonorm/postcss-modules": "^6.0.2",
+    "@carbonorm/rollup-plugin-postcss": "^3.0.0",
     "@drop-in-gaming/barrelsby": "^0.0.2",
     "@open-wc/building-rollup": "^3.0.1",
     "@rollup/plugin-commonjs": "^11.0.1",
@@ -31,6 +33,7 @@
     "axios": "^1.4.0",
     "bootstrap": "^5.3.1",
     "classnames": "^2.3.2",
+    "css-loader": "^6.8.1",
     "deepmerge": "^4.3.1",
     "livereload": "^0.9.3",
     "postcss": "^8.4.27",
@@ -59,7 +62,7 @@
     "test": "node test/test.js",
     "pretest": "npm run build",
     "build:index": "npx barrelsby -d ./src --delete --exclude '(jestHoc|\\.test|\\.d).(js|tsx?)$' --exportDefault --verbose",
-    "build:css": "sass ./src:./src && typed-scss-modules 'src/**/*.?(s)css' --nameFormat camel --nameFormat none --exportType default src"
+    "build:css": "sass ./src:./src && typed-scss-modules 'src/**/*.?(s)css' --nameFormat all --exportType default src"
   },
   "files": [
     "dist"

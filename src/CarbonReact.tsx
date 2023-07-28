@@ -45,7 +45,7 @@ export default class CarbonReact<P = {}, S = {}> extends React.Component<{
 
     static lastLocation = window.location.pathname;
 
-    public readonly state = {
+    state = {
         carbons: undefined,
         alertsWaiting: [],
         backendThrowable: [],
