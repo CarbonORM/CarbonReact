@@ -100,7 +100,7 @@ function axiosInterceptors(axios: AxiosInstance): void {
                     'XDEBUG_SESSION=start; path=/'
                 ])
 
-                req.headers ??= {} as AxiosRequestHeaders
+                req.headers ??= ({} as AxiosRequestHeaders)
 
                 req.headers['Cookie'] = document.cookie;
 

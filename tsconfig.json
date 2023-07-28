@@ -6,9 +6,11 @@
     "baseUrl": "./src/",
     "declaration": true,
     "declarationDir": "dist",
+    "emitDeclarationOnly": false,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "jsx": "react-jsx",
+    "isolatedModules": true,
     "module": "esnext",
     "moduleResolution": "node",
     "newLine": "LF",
@@ -23,7 +25,7 @@
     "rootDir": "./src/",
     "sourceMap": true,
     "strict": true,
-    "target": "es6"
+    "target": "es5"
   },
   "include": [
     "src/**/*.ts",

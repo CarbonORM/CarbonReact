@@ -3,10 +3,10 @@ import commonjs from '@rollup/plugin-commonjs';
 import typescript from '@rollup/plugin-typescript';
 import postcss from '@carbonorm/rollup-plugin-postcss';
 import includePaths from 'rollup-plugin-includepaths';
-import simplevars from 'postcss-simple-vars';
+import simpleVars from 'postcss-simple-vars';
 import nested from 'postcss-nested';
 import autoprefixer from 'autoprefixer';
-
+import dts from 'rollup-plugin-dts';
 import {readFileSync} from "fs";
 
 const pkg = JSON.parse(readFileSync('package.json', {encoding: 'utf8'}));
@@ -20,7 +20,7 @@ const postCss = postcss({
     sourceMap: true,
     plugins: [
         autoprefixer(),
-        simplevars(),
+        simpleVars(),
         nested()
     ],
     extensions: ['.css', '.scss'],
@@ -79,7 +79,6 @@ console.log(globals)
 export default [
     // browser-friendly UMD build
     {
-
         input: 'src/index.ts',
         external: externals,
         output: {
@@ -105,7 +104,14 @@ export default [
         plugins: plugins,
         output: [
             {file: pkg.main, format: 'cjs', globals: globals, sourcemap: true},
-            {preserveModules: true, dir: pkg.module, format: 'esm', globals: globals, sourcemap: true}
+            {file: pkg.module, format: 'esm', globals: globals, sourcemap: true}
         ]
-    }
+    },
+
+    {
+        input: 'dist/esm/index.d.ts',
+        output: [{ file: 'dist/index.d.ts', format: "esm" }],
+        external: [/\.css$/],
+        plugins: [dts()],
+    },
 ];
