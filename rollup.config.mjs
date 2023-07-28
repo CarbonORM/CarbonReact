@@ -1,7 +1,7 @@
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import typescript from '@rollup/plugin-typescript';
-import postcss from 'rollup-plugin-postcss';
+import postcss from '@carbonorm/rollup-plugin-postcss';
 import includePaths from 'rollup-plugin-includepaths';
 import simplevars from 'postcss-simple-vars';
 import nested from 'postcss-nested';
@@ -15,9 +15,9 @@ const config = JSON.parse(readFileSync('tsconfig.json', {encoding: 'utf8'}));
 // @link https://stackoverflow.com/questions/63128597/how-to-get-rid-of-the-rollup-plugin-typescript-rollup-sourcemap-option-must
 //const production = !process.env.ROLLUP_WATCH;
 
+
 const postCss = postcss({
     sourceMap: true,
-
     plugins: [
         autoprefixer(),
         simplevars(),
@@ -26,7 +26,8 @@ const postCss = postcss({
     extensions: ['.css', '.scss'],
     extract: true,
     modules: {
-        localsConvention: 'camelCase',
+        localsConvention: 'all',
+        generateScopedName: '[hash:base64:7]',
     },
     syntax: 'postcss-scss',
     use: ['sass'],
@@ -34,7 +35,11 @@ const postCss = postcss({
 
 
 const plugins = [
-    includePaths({paths: [config.compilerOptions.baseUrl]}),
+    includePaths({
+        paths: [
+            config.compilerOptions.baseUrl
+        ]
+    }),
     resolve({
         extensions: ['.js', '.jsx', '.ts', '.tsx']
     }),
@@ -57,7 +62,6 @@ const externals = [
     ...Object.keys(pkg.dependencies || {}),
     ...Object.keys(pkg.devDependencies || {}),
     ...Object.keys(pkg.peerDependencies || {}),
-    ///.*\\.scss$/
 ]
 
 console.log('externals', externals)
@@ -101,7 +105,7 @@ export default [
         plugins: plugins,
         output: [
             {file: pkg.main, format: 'cjs', sourcemap: true},
-            {preserveModules: true, dir: pkg.module, format: 'es', sourcemap: true}
+            {preserveModules: true, dir: pkg.module, format: 'esm', sourcemap: true}
         ]
     }
 ];
