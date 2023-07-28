@@ -1,6 +1,6 @@
 {
   "name": "@carbonorm/carbonreact",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "main": "dist/CarbonReact.cjs.js",
   "browser": "dist/CarbonReact.umd.js",
   "module": "dist/",
@@ -57,7 +57,7 @@
   },
   "scripts": {
     "c6": "wget https://raw.githubusercontent.com/RichardTMiles/CarbonPHP/lts/view/C6.tsx -O src/variables/C6.tsx",
-    "build": "npm run build:css && npm run build:index && rollup -c",
+    "build": "rm -rf dist/ ** npm run build:css && npm run build:index && rollup -c",
     "dev": "rollup -c -w",
     "test": "node test/test.js",
     "pretest": "npm run build",
