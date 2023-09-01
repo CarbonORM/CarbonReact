@@ -37,6 +37,7 @@ const plugins = [
     }),
 
     typescript({
+        declaration: true,
         sourceMap: true, // !production,
         inlineSources: false, // !production
     }),

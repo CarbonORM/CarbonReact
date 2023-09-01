@@ -8,38 +8,35 @@ import {ToastContainer} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.min.css';
 import BackendThrowable from 'components/Errors/BackendThrowable';
 import Nest from 'components/Nest/Nest';
-import {iCarbons} from "variables/C6";
+import {initialRestfulObjectArrayTypes, iRestfulObjectArrayTypes} from "variables/C6";
 
 
-export type tStatefulApiData<T> = T[] | undefined | null;
-
-
-// this refers to the value types of the keys above, aka values in the state
-export interface iRestfulObjectArrayTypes {
-    carbons: tStatefulApiData<iCarbons>,
-}
-
-export type tRestfulObjectArrayKeys = keyof iRestfulObjectArrayTypes
-
-export type tRestfulObjectArrayValues = iRestfulObjectArrayTypes[tRestfulObjectArrayKeys];
-
-// @ts-ignore
-export type tRestfulObjectValues = tRestfulObjectArrayValues[number];
 
 // our central container, single page application is best with the DigApi
-export interface iCarbonORMState extends iRestfulObjectArrayTypes {
+export interface iCarbonORMState {
+    alertsWaiting: any[],
     websocketEvents: MessageEvent[],
     websocketData: any[],
     websocket?: WebSocket,
-    websocketMounted: boolean,
-    alert?: boolean,
-    alertsWaiting: any[],
     backendThrowable: any[],
+}
+
+export const initialRequiredState: iCarbonORMState = {
+    alertsWaiting: [],
+    backendThrowable: [],
+    websocketData: [],
+    websocketEvents: [],
+}
+
+export const initialCarbonORMState: iCarbonORMState = {
+    ...initialRestfulObjectArrayTypes,
+    ...initialRequiredState,
+
 }
 
 export default class CarbonReact<P = {}, S = {}> extends React.Component<{
     children?: ReactNode | ReactNode[],
-} & P, iCarbonORMState & S> {
+} & P, ( iRestfulObjectArrayTypes |& S ) & iCarbonORMState> {
 
     static instance: CarbonReact;
 
@@ -53,14 +50,7 @@ export default class CarbonReact<P = {}, S = {}> extends React.Component<{
 
         super(props);
 
-        this.state = {
-            carbons: undefined,
-            alertsWaiting: [],
-            backendThrowable: [],
-            websocketData: [],
-            websocketEvents: [],
-            websocketMounted: false,
-        } as unknown as iCarbonORMState & S;
+        this.state = initialCarbonORMState as unknown as iCarbonORMState & S;
 
         CarbonReact.instance = this;
 
