@@ -271,7 +271,7 @@ function axiosInterceptors(axios: AxiosInstance): void {
 
                     if (isTest) {
 
-                        throw new Error(error?.response.data['CarbonPHP\\Error\\PublicAlert'] ?? error?.response.data['DropInGaming\\PHP\\Errors\\DropException'] ?? JSON.stringify(error?.response.data, undefined, 4))
+                        throw new Error(error?.response.data['CarbonPHP\\Error\\PublicAlert'] ?? error?.response.data['TRACE'] ?? JSON.stringify(error?.response.data, undefined, 4))
 
                     }
 

@@ -5,7 +5,7 @@ export default function setUrl() {
 
     const isGitHubActions = process.env.REACT_APP_TEST_REMOTE === 'true'
 
-    const host = ( isGitHubActions ? process.env.REACT_APP_REMOTE_SUBDOMAIN : process.env.REACT_APP_LOCAL_SUBDOMAIN ) + '.dropingaming.com' + (isGitHubActions ? '' : ':8080')
+    const host = ( isGitHubActions ? process.env.REACT_APP_REMOTE_SUBDOMAIN : process.env.REACT_APP_LOCAL_SUBDOMAIN ) + '.example.com' + (isGitHubActions ? '' : ':8080')
 
     console.log("test host:: ", host, isGitHubActions)
 

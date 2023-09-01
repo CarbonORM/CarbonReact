@@ -23,8 +23,8 @@ export enum eUpdateInsertMethod {
  */
 export default function updateRestfulObjectArray<ObjectType extends tRestfulObjectValues>
 (dataOrCallback: ((prev: Readonly<iCarbonORMState>) => ObjectType[]) | ObjectType[],
- uniqueObjectId: keyof ObjectType,
  stateKey: keyof iRestfulObjectArrayTypes,
+ uniqueObjectId: keyof ObjectType,
  insertUpdateOrder: eUpdateInsertMethod = eUpdateInsertMethod.LAST,
  callback?: () => void): void {
 

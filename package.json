@@ -1,10 +1,28 @@
 {
   "name": "@carbonorm/carbonreact",
-  "version": "1.2.5",
-  "main": "dist/cjs/index.js",
-  "module": "dist/esm/index.js",
-  "types": "dist/esm/index.d.ts",
+  "version": "2.0.0",
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
   "type": "module",
+  "dependencies": {
+    "@carbonorm/carbonnode": "^1.0.8",
+    "@fortawesome/fontawesome-svg-core": "^6.4.0",
+    "@fortawesome/free-solid-svg-icons": "^6.4.0",
+    "@fortawesome/react-fontawesome": "^0.2.0",
+    "axios": "^1.4.0",
+    "bootstrap": "^5.3.1",
+    "classnames": "^2.3.2",
+    "qs": "^6.11.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-loading-skeleton": "^3.3.1",
+    "react-outside-click-handler": "^1.3.0",
+    "react-router-dom": "^6.14.2",
+    "react-toastify": "^9.1.3",
+    "typed-css-modules": "^0.7.2",
+    "typed-scss-modules": "^7.1.2"
+  },
   "devDependencies": {
     "@carbonorm/postcss-modules": "^6.0.2",
     "@carbonorm/rollup-plugin-postcss": "^3.0.0",
@@ -44,28 +62,11 @@
     "dev": "rollup -c -w",
     "test": "node test/test.js",
     "pretest": "npm run build",
-    "build:index": "npx barrelsby -d ./src --delete --exclude '(jestHoc|\\.test|\\.d).(js|tsx?)$' --exportDefault --verbose",
+    "build:index": "npx barrelsby --directory ./src --delete --exclude '(jestHoc|\\.test|\\.d).(js|tsx?)$' --exportDefault --verbose --mode top",
     "build:css": "sass ./src:./src && typed-scss-modules 'src/**/*.?(s)css' --nameFormat all --exportType default src"
   },
   "files": [
     "dist",
     "src"
-  ],
-  "dependencies": {
-    "@carbonorm/carbonnode": "^1.0.0",
-    "@fortawesome/fontawesome-svg-core": "^6.4.0",
-    "@fortawesome/free-solid-svg-icons": "^6.4.0",
-    "@fortawesome/react-fontawesome": "^0.2.0",
-    "axios": "^1.4.0",
-    "bootstrap": "^5.3.1",
-    "classnames": "^2.3.2",
-    "qs": "^6.11.1",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-loading-skeleton": "^3.3.1",
-    "react-outside-click-handler": "^1.3.0",
-    "react-router-dom": "^6.14.2",
-    "react-toastify": "^9.1.3",
-    "typed-scss-modules": "^7.1.2"
-  }
+  ]
 }
