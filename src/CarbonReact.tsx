@@ -8,12 +8,12 @@ import {ToastContainer} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.min.css';
 import BackendThrowable from 'components/Errors/BackendThrowable';
 import Nest from 'components/Nest/Nest';
-import {initialRestfulObjectArrayTypes, iRestfulObjectArrayTypes} from "variables/C6";
+import {initialRestfulObjectsState, iRestfulObjectArrayTypes} from "variables/C6";
 
 
 
 // our central container, single page application is best with the DigApi
-export interface iCarbonORMState {
+export interface iCarbonReactState {
     alertsWaiting: any[],
     websocketEvents: MessageEvent[],
     websocketData: any[],
@@ -21,22 +21,21 @@ export interface iCarbonORMState {
     backendThrowable: any[],
 }
 
-export const initialRequiredState: iCarbonORMState = {
+export const initialRequiredCarbonORMState: iCarbonReactState = {
     alertsWaiting: [],
     backendThrowable: [],
     websocketData: [],
     websocketEvents: [],
 }
 
-export const initialCarbonORMState: iCarbonORMState = {
-    ...initialRestfulObjectArrayTypes,
-    ...initialRequiredState,
-
+export const initialCarbonReactState: iCarbonReactState = {
+    ...initialRequiredCarbonORMState,
+    ...initialRestfulObjectsState,
 }
 
 export default class CarbonReact<P = {}, S = {}> extends React.Component<{
     children?: ReactNode | ReactNode[],
-} & P, ( iRestfulObjectArrayTypes |& S ) & iCarbonORMState> {
+} & P, ( iRestfulObjectArrayTypes |& S ) & iCarbonReactState> {
 
     static instance: CarbonReact;
 
@@ -50,7 +49,7 @@ export default class CarbonReact<P = {}, S = {}> extends React.Component<{
 
         super(props);
 
-        this.state = initialCarbonORMState as unknown as iCarbonORMState & S;
+        this.state = initialCarbonReactState as unknown as iCarbonReactState & S;
 
         CarbonReact.instance = this;
 
@@ -73,7 +72,7 @@ export default class CarbonReact<P = {}, S = {}> extends React.Component<{
 
     shouldComponentUpdate(
         nextProps: Readonly<any>,
-        nextState: Readonly<iCarbonORMState>,
+        nextState: Readonly<iCarbonReactState>,
         _nextContext: any): boolean {
 
         changed(this.constructor.name + ' (DigApi)', 'props', this.props, nextProps);
@@ -83,7 +82,7 @@ export default class CarbonReact<P = {}, S = {}> extends React.Component<{
 
     }
 
-    componentDidUpdate(_prevProps: Readonly<any>, _prevState: Readonly<iCarbonORMState>, _snapshot?: any) {
+    componentDidUpdate(_prevProps: Readonly<any>, _prevState: Readonly<iCarbonReactState>, _snapshot?: any) {
         if (CarbonReact.lastLocation !== location.pathname) {
             CarbonReact.lastLocation = location.pathname;
             const websocket = this.state.websocket;

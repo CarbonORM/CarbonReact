@@ -1,6 +1,6 @@
 // @link https://stackoverflow.com/questions/6735414/php-data-uri-to-file
 // @link https://www.tutorialspoint.com/convert-image-to-data-uri-with-javascript
-import {ChangeEvent} from "react";
+import {ChangeEvent, lazy} from "react";
 import {toast} from "react-toastify";
 
 
@@ -40,40 +40,69 @@ export async function toDataURL(src: string, fileType: string, callback: (dataUr
 
 }
 
-export function uploadImageChange(event: ChangeEvent<HTMLInputElement>,
-uploadCallback: ((imageDataUri: string) => void)) {
+export async function uploadImageChange(event: ChangeEvent<HTMLInputElement>,
+                                        uploadCallback: (dataUriBase64: string) => void) {
 
-    if (event.target.files !== null && event.target.files[0]) {
+    if (event.target.files === null || undefined === event.target?.files?.[0]) {
 
-        Object.keys(event.target.files).forEach((index) => {
+        toast.error('Please upload a valid image file type (jpg, jpeg, png, gif, heic).');
 
-            const file = event.target.files?.[index];
+        return;
+
+    }
+
+    Object.keys(event.target.files).forEach((index) => {
+
+        (async () => {
+            let file = event.target.files?.[index];
 
             // loop through all files and create data url then post to postPost
-            if (file.type.match('image.*')) {
+            if (false === file.type.match('image.*')) {
 
-                // get file extension
-                const fileExtension = file.name.split('.').pop();
+                toast.error('Please upload a valid image file type (jpg, jpeg, png, gif, heic). (E_IMAGE_*<>' + file.type + ')');
 
-                // check file extension is valid data uri
-                if (fileExtension !== 'jpg' && fileExtension !== 'jpeg' && fileExtension !== 'png' && fileExtension !== 'gif') {
-
-                    toast.error('Please upload a valid image file type (jpg, jpeg, png, gif).');
-
-                    return;
-
-                }
-
-
-                // @link https://github.com/palantir/tslint/issues/4653
-                // @link https://github.com/Microsoft/TypeScript/issues/13376#issuecomment-273289748
-                void toDataURL(URL.createObjectURL(file), file.type, uploadCallback);
+                return;
 
             }
 
-        });
+            // get file extension
+            const fileExtension = file.name.split('.').pop();
 
-    }
+            // check file extension is valid data uri
+            if (fileExtension !== 'jpg'
+                && fileExtension !== 'jpeg'
+                && fileExtension !== 'heic'
+                && fileExtension !== 'png'
+                && fileExtension !== 'gif') {
+
+                toast.error('Please upload a valid image file type (jpg, jpeg, png, gif, heic). (E_IMAGE_EXT)');
+
+                return;
+
+            }
+
+            const isHeic = fileExtension === 'heic';
+
+            if (isHeic) {
+
+                // todo - this should be code split and lazy loaded, but doesn't work
+                // look up code splitting, it could be an issue with rewired
+                file = (await lazy(() => require("heic2any")))({
+                    blob: file,
+                    toType: "image/webp",
+                    quality: 1.0, // 0.5 cuts the quality and size by half
+                });
+
+            }
+
+            // @link https://github.com/palantir/tslint/issues/4653
+            // @link https://github.com/Microsoft/TypeScript/issues/13376#issuecomment-273289748
+            void toDataURL(URL.createObjectURL(file), 'image/webp', uploadCallback);
+
+        })();
+
+    });
+
 
 }
 
@@ -81,12 +110,28 @@ uploadCallback: ((imageDataUri: string) => void)) {
 // dataUriEncoded is the base64 encoded string which is posted in column post_content
 export default function uploadImage(uploadCallback: (dataUriBase64: string) => void) {
     return () => {
+
         const input: HTMLInputElement = document.createElement('input')
+
         input.type = 'file'
-        input.accept = 'image/*'
-        input.onchange = (e: Event): any => {
-            uploadImageChange(e as unknown as ChangeEvent<HTMLInputElement>, uploadCallback)
-        }
+
+        input.accept = 'image/*, .heic'
+
+        input.style.display = 'none'
+
+        // the element must be appended to the document to work on safari
+        // @link https://stackoverflow.com/questions/47664777/javascript-file-input-onchange-not-working-ios-safari-only
+        document.body.appendChild(input);
+
+        // safari also requires addEventListener rather than .onChange
+        input.addEventListener('change', (e) => {
+
+            console.log('upload image event', e)
+
+            void uploadImageChange(e as unknown as ChangeEvent<HTMLInputElement>, uploadCallback)
+
+        })
+
         input.click()
     }
 }

@@ -1,8 +1,7 @@
 import CarbonReact, {
-    iCarbonORMState,
-    iRestfulObjectArrayTypes,
-    tRestfulObjectValues
+    iCarbonReactState
 } from "CarbonReact";
+import {iRestfulObjectArrayTypes, tRestfulObjectValues} from "variables/C6";
 
 
 export enum eUpdateInsertMethod {
@@ -21,9 +20,9 @@ export enum eUpdateInsertMethod {
  * @param callback - if you want to do something with the updated state, you can pass a callback here. Run as the second
  *  parameter of setState.
  */
-export default function updateRestfulObjectArray<ObjectType extends tRestfulObjectValues>
-(dataOrCallback: ((prev: Readonly<iCarbonORMState>) => ObjectType[]) | ObjectType[],
- stateKey: keyof iRestfulObjectArrayTypes,
+export default function updateRestfulObjectArray<ObjectType = tRestfulObjectValues, ObjectArrayTypes = iRestfulObjectArrayTypes>
+(dataOrCallback: ((prev: Readonly<iCarbonReactState>) => ObjectType[]) | ObjectType[],
+ stateKey: keyof ObjectArrayTypes,
  uniqueObjectId: keyof ObjectType,
  insertUpdateOrder: eUpdateInsertMethod = eUpdateInsertMethod.LAST,
  callback?: () => void): void {
@@ -34,7 +33,8 @@ export default function updateRestfulObjectArray<ObjectType extends tRestfulObje
 
         let newOrReplacementData: ObjectType[] = dataOrCallback instanceof Function ? dataOrCallback(previousBootstrapState) : dataOrCallback;
 
-        const previousStateProperty = previousBootstrapState[stateKey] as ObjectType[];
+        // @ts-ignore
+        const previousStateProperty = previousBootstrapState[stateKey];
 
         let updatedData = newOrReplacementData.map(value => {
             return {
