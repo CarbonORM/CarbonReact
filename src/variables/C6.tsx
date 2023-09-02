@@ -1802,7 +1802,7 @@ export interface iRestfulObjectArrayTypes {
     users: tStatefulApiData<iUsers>,
 }
 
-export const initialRestfulObjectArrayTypes: iRestfulObjectArrayTypes = {
+export const initialRestfulObjectsState: iRestfulObjectArrayTypes = {
 
     carbons: undefined,
     comments: undefined,
@@ -1830,5 +1830,7 @@ export type tRestfulObjectArrayValues = iRestfulObjectArrayTypes[tRestfulObjectA
 
 // @ts-ignore
 export type tRestfulObjectValues = tRestfulObjectArrayValues[number];
+
+
 
 

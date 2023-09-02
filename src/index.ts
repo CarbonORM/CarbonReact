@@ -12,8 +12,6 @@ export { default as BackendThrowable } from "./components/Errors/BackendThrowabl
 export * from "./components/Errors/BackendThrowable";
 export { default as ErrorHttpCode } from "./components/Errors/ErrorHttpCode";
 export * from "./components/Errors/ErrorHttpCode";
-export { default as Localhost } from "./components/Errors/Localhost";
-export * from "./components/Errors/Localhost";
 export { default as PageNotFound } from "./components/Errors/PageNotFound";
 export * from "./components/Errors/PageNotFound";
 export { default as Loading } from "./components/Loading/Loading";
