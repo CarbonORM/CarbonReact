@@ -33,5 +33,9 @@
     "src/custom.d.ts",
     "src/**/*",
     "src/index.ts"
+  ],
+  "types": [
+    "node",
+    "webpack-env"
   ]
 }

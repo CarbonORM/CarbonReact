@@ -1,12 +1,12 @@
 {
   "name": "@carbonorm/carbonreact",
-  "version": "2.0.2",
+  "version": "3.0.7",
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
   "type": "module",
   "dependencies": {
-    "@carbonorm/carbonnode": "^1.0.8",
+    "@carbonorm/carbonnode": "^1.0.12",
     "@fortawesome/fontawesome-svg-core": "^6.4.0",
     "@fortawesome/free-solid-svg-icons": "^6.4.0",
     "@fortawesome/react-fontawesome": "^0.2.0",
@@ -33,7 +33,7 @@
     "@rollup/plugin-node-resolve": "^7.0.0",
     "@rollup/plugin-typescript": "^11.1.2",
     "@types/ms": "^0.7.31",
-    "@types/node": "^18.15.11",
+    "@types/node": "^18.17.14",
     "@types/react": "^18.0.32",
     "@types/react-dom": "^18.0.11",
     "@types/styled-components": "5.1.24",
