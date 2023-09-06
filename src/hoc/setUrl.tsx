@@ -1,18 +1,7 @@
 // @link https://www.benmvp.com/blog/mocking-window-location-methods-jest-jsdom/
-import axiosInstance from "hoc/axiosInstance";
+import {axiosInstance} from "@carbonorm/carbonnode";
 
-export default function setUrl() {
-
-    const isGitHubActions = process.env.REACT_APP_TEST_REMOTE === 'true'
-
-    const host = ( isGitHubActions ? process.env.REACT_APP_REMOTE_SUBDOMAIN : process.env.REACT_APP_LOCAL_SUBDOMAIN ) + '.example.com' + (isGitHubActions ? '' : ':8080')
-
-    console.log("test host:: ", host, isGitHubActions)
-
-    /*Object.defineProperty(global, 'window', {
-        writable: true,
-        value: Object.create(window)
-    });*/
+export default function setUrl(host: string = 'www.example.com', https: boolean = false) {
 
     if (!global.structuredClone){
 
@@ -24,7 +13,7 @@ export default function setUrl() {
     }
 
     // noinspection HttpUrlsUsage
-    axiosInstance.defaults.baseURL = 'http' + (isGitHubActions ? 's' : '') + '://' + host + '/';
+    axiosInstance.defaults.baseURL = 'http' + (https ? 's' : '') + '://' + host + '/';
 
     Object.defineProperty(global.window, 'location', {
         writable: true,

@@ -2,7 +2,7 @@ import {clearCache} from "@carbonorm/carbonnode";
 import changed from "hoc/changed";
 import {GlobalHistory} from "hoc/GlobalHistory";
 import hexToRgb from "hoc/hexToRgb";
-import React, {ReactNode} from 'react';
+import {Component, ReactNode} from 'react';
 import {BrowserRouter} from 'react-router-dom';
 import {ToastContainer} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.min.css';
@@ -28,16 +28,18 @@ export const initialRequiredCarbonORMState: iCarbonReactState = {
     websocketEvents: [],
 }
 
-export const initialCarbonReactState: iCarbonReactState = {
+export const initialCarbonReactState: iCarbonReactState & iRestfulObjectArrayTypes = {
     ...initialRequiredCarbonORMState,
     ...initialRestfulObjectsState,
 }
 
-export default class CarbonReact<P = {}, S = {}> extends React.Component<{
+const CarbonReact= class <P = {}, S = {}> extends Component<{
     children?: ReactNode | ReactNode[],
-} & P, ( iRestfulObjectArrayTypes |& S ) & iCarbonReactState> {
+} & P, S & iCarbonReactState> {
 
-    static instance: CarbonReact;
+    static instance: Component<{
+        children?: ReactNode | ReactNode[],
+    } & any, any & iCarbonReactState>;
 
     static lastLocation = window.location.pathname;
 
@@ -49,15 +51,12 @@ export default class CarbonReact<P = {}, S = {}> extends React.Component<{
 
         super(props);
 
-        this.state = initialCarbonReactState as unknown as iCarbonReactState & S;
-
-        CarbonReact.instance = this;
+        this.state = initialCarbonReactState as unknown as S & iCarbonReactState;
 
         // This should only ever be done here, when the full state is being trashed.
         clearCache({
             ignoreWarning: true
         });
-
 
         /** We can think of our app as having one state; this state.
          * Long-term, I'd like us to store this state to local storage and only load updates on reload...
@@ -122,4 +121,4 @@ export default class CarbonReact<P = {}, S = {}> extends React.Component<{
 
 }
 
-
+export default CarbonReact;

@@ -1,7 +1,6 @@
-import CarbonReact, {
-    iCarbonReactState
-} from "CarbonReact";
-import {iRestfulObjectArrayTypes, tRestfulObjectValues} from "variables/C6";
+import {tRestfulObjectArrayValues, tStatefulApiData} from "variables/C6";
+import CarbonReact from "CarbonReact";
+import {KeysMatching} from "./KeysMatching";
 
 
 export enum eUpdateInsertMethod {
@@ -20,28 +19,68 @@ export enum eUpdateInsertMethod {
  * @param callback - if you want to do something with the updated state, you can pass a callback here. Run as the second
  *  parameter of setState.
  */
-export default function updateRestfulObjectArray<ObjectType = tRestfulObjectValues, ObjectArrayTypes = iRestfulObjectArrayTypes>
-(dataOrCallback: ((prev: Readonly<iCarbonReactState>) => ObjectType[]) | ObjectType[],
- stateKey: keyof ObjectArrayTypes,
- uniqueObjectId: keyof ObjectType,
+export default function updateRestfulObjectArrays<ObjectType = tRestfulObjectArrayValues, S = typeof CarbonReact.instance.state, P = typeof CarbonReact.instance.props>
+(dataOrCallback: ObjectType[] | (<K extends keyof S>(
+     state: ((prevState: Readonly<S>, props: Readonly<P>) => (Pick<S, K> | S | null)) | (Pick<S, K> | S | null),
+     callback?: () => void
+ ) => null|(ObjectType[])),
+ stateKey: KeysMatching<S, tStatefulApiData<ObjectType>>,
+ uniqueObjectId: (keyof ObjectType) | (keyof ObjectType)[],
  insertUpdateOrder: eUpdateInsertMethod = eUpdateInsertMethod.LAST,
  callback?: () => void): void {
 
-    const bootstrap: CarbonReact = CarbonReact.instance;
+    const uniqueObjectIds = uniqueObjectId instanceof Array ? uniqueObjectId : [uniqueObjectId];
 
-    return bootstrap.setState((previousBootstrapState): {} => {
+    const bootstrap = CarbonReact.instance;
 
-        let newOrReplacementData: ObjectType[] = dataOrCallback instanceof Function ? dataOrCallback(previousBootstrapState) : dataOrCallback;
+    return bootstrap.setState((previousBootstrapState, props): {} => {
 
-        // @ts-ignore
-        const previousStateProperty = previousBootstrapState[stateKey];
+        let newOrReplacementData: null|(ObjectType[]) = [];
 
-        let updatedData = newOrReplacementData.map(value => {
+        if (dataOrCallback instanceof Array) {
+
+            newOrReplacementData = dataOrCallback
+
+        } else if (dataOrCallback instanceof Function) {
+
+            newOrReplacementData = dataOrCallback(previousBootstrapState, props);
+
+        } else {
+
+            throw Error('The dataOrCallback parameter was not an array or function')
+
+        }
+
+        const findUniqueObjectIds = (item : ObjectType, value: ObjectType) => {
+
+            let isMatch = true;
+
+            uniqueObjectIds.find(uniqueObjectId => {
+
+                if (value[uniqueObjectId] !== item[uniqueObjectId]) {
+
+                    isMatch = false;
+
+                    return true;
+
+                }
+
+                return false;
+
+            })
+
+            return isMatch;
+
+        }
+
+        const previousStateProperty : ObjectType[] = previousBootstrapState[stateKey];
+
+        let updatedData : ObjectType[] = newOrReplacementData?.map(value => {
             return {
-                ...previousStateProperty?.find(previousValue => previousValue[uniqueObjectId] === value[uniqueObjectId]) || {},
+                ...previousStateProperty?.find(previousValue => findUniqueObjectIds(previousValue, value)) || {},
                 ...value
             }
-        })
+        }) ?? [];
 
         switch (insertUpdateOrder) {
             default:
@@ -50,14 +89,14 @@ export default function updateRestfulObjectArray<ObjectType = tRestfulObjectValu
                 return {
                     [stateKey]: null === newOrReplacementData ? null : [
                         ...updatedData,
-                        ...(previousStateProperty?.filter(item => false === (newOrReplacementData?.find(value => value[uniqueObjectId] === item[uniqueObjectId]) || false)) ?? [])
+                        ...(previousStateProperty?.filter(item => false === (updatedData?.find(value => findUniqueObjectIds(item, value)) || false)) ?? [])
                     ]
                 }
 
             case eUpdateInsertMethod.FIRST:
                 return {
                     [stateKey]: null === newOrReplacementData ? null : [
-                        ...(previousStateProperty?.filter(item => false === (newOrReplacementData?.find(value => value[uniqueObjectId] === item[uniqueObjectId]) || false)) ?? []),
+                        ...(previousStateProperty?.filter(item => false === (updatedData?.find(value => findUniqueObjectIds(item, value)) || false)) ?? []),
                         ...updatedData,
                     ]
                 }
@@ -67,7 +106,7 @@ export default function updateRestfulObjectArray<ObjectType = tRestfulObjectValu
                     [stateKey]: [
                         ...(previousStateProperty?.map(oldObject => {
 
-                            const index = updatedData.findIndex(item => item[uniqueObjectId] === oldObject[uniqueObjectId]);
+                            const index = updatedData.findIndex(item => findUniqueObjectIds(item, oldObject));
 
                             if (-1 === index) {
 
