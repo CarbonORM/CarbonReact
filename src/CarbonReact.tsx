@@ -67,7 +67,7 @@ const CarbonReact= class <P = {}, S = {}> extends Component<{
 
     }
 
-    getState<S>() : S {
+    static getState<S>() : S {
         return CarbonReact.instance.state;
     }
 
