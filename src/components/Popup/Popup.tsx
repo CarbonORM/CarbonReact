@@ -1,12 +1,12 @@
 import classNames from "classnames";
 import OutsideClickHandler from 'react-outside-click-handler';
 import getStyles from "hoc/getStyles";
+import {PropsWithChildren} from "react";
 
 
 interface iPopupProperties {
     open?: boolean;
     handleClose: () => any;
-    children: any;
     minWidth?: string;
     maxWidth?: string;
 
@@ -18,23 +18,22 @@ export default function Popup({
                                   handleClose,
                                   children,
                                   maxWidth,
-                              }: iPopupProperties) {
+                              }: PropsWithChildren<iPopupProperties>) {
 
     if (false === open) {
 
+        // @link https://legacy.reactjs.org/docs/conditional-rendering.html#preventing-component-from-rendering
         return null;
 
     }
 
     const dig = getStyles()
 
-    return <>
-        <div className={classNames(dig.modal, dig.fade, dig.show, dig.dBlock)}
+    return <div className={classNames(dig.modal, dig.fade, dig.show, dig.dBlock)}
              style={{backgroundColor: "rgba(0,0,0,0.8)"}}
              id="exampleModalCenter"
              tabIndex={-1} aria-labelledby="exampleModalCenterTitle"
              aria-modal="true" role="dialog">
-
             <div
                 style={{maxWidth: maxWidth}}
                 className={classNames(
@@ -49,7 +48,6 @@ export default function Popup({
             </div>
 
         </div>
-    </>
 
 }
 
