@@ -168,11 +168,11 @@ a {
   max-height: calc(100vh - 60px);
 }
 
-.digSecondaryHeader {
+.secondaryHeader {
   height: 60px;
   list-style: none;
 }
-.digSecondaryHeader:hover {
+.secondaryHeader:hover {
   background-color: var(--neutral7);
   transition: all 1s ease;
 }

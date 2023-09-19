@@ -1,8 +1,5 @@
 export type Styles = {
   'container': string;
-  'dig_secondary_header': string;
-  'dig-secondary-header': string;
-  'digSecondaryHeader': string;
   'floating_chat_icon': string;
   'floating-chat-icon': string;
   'floatingChatIcon': string;
@@ -35,6 +32,9 @@ export type Styles = {
   'problem_box': string;
   'problem-box': string;
   'problemBox': string;
+  'secondary_header': string;
+  'secondary-header': string;
+  'secondaryHeader': string;
 };
 
 export type ClassNames = keyof Styles;

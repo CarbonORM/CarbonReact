@@ -92,6 +92,7 @@ export default [
             // builds from a single configuration where possible, using
             // an array for the `output` option, where we can specify
             // `file` and `format` for each target)
+            //{name: pkg.name, file: pkg.browser, format: 'umd', globals: globals, sourcemap: true},
             {file: pkg.main, format: 'cjs', globals: globals, sourcemap: true},
             {file: pkg.module, format: 'es', globals: globals, sourcemap: true}
         ]
