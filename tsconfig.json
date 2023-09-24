@@ -25,7 +25,7 @@
     "rootDir": "./src/",
     "sourceMap": true,
     "strict": true,
-    "target": "es5"
+    "target": "ESNext"
   },
   "include": [
     "src/**/*.ts",
