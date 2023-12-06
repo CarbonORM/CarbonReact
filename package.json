@@ -1,13 +1,13 @@
 {
   "name": "@carbonorm/carbonreact",
-  "version": "3.3.9",
+  "version": "3.4.0",
   "browser": "dist/index.umd.js",
   "module": "dist/index.esm.js",
   "main": "dist/index.cjs.js",
   "types": "dist/index.d.ts",
   "type": "module",
   "dependencies": {
-    "@carbonorm/carbonnode": "^1.1.0",
+    "@carbonorm/carbonnode": "^1.1.11",
     "@fortawesome/fontawesome-svg-core": "^6.4.0",
     "@fortawesome/free-solid-svg-icons": "^6.4.0",
     "@fortawesome/react-fontawesome": "^0.2.0",
@@ -70,16 +70,20 @@
   "scripts": {
     "prepublishOnly": "npm run build",
     "c6": "wget https://raw.githubusercontent.com/RichardTMiles/CarbonPHP/lts/view/C6.tsx -O src/variables/C6.tsx",
-    "build": "rm -rf ./dist/ && npm run build:css && npm run build:index && rollup -c && tsc compileValidSQL.tsx && mv compileValidSQL.js compileValidSQL.cjs",
+    "build": "rm -rf ./dist/ && npm run build:css && npm run build:index && rollup -c && npm run build:compileValidSQL && npm run build:generateRestBindings",
     "dev": "rollup -c -w",
     "test": "node test/test.js",
     "pretest": "npm run build",
     "build:index": "npx barrelsby --directory ./src --delete --exclude '(jestHoc|\\.test|\\.d).(js|tsx?)$' --exportDefault --verbose --mode top",
     "build:css": "sass ./src:./src && typed-scss-modules 'src/**/*.?(s)css' --nameFormat all --exportType default src",
-    "build:compileValidSQL": "ts-node --experimental-specifier-resolution=node compileValidSQL.tsx"
+    "build:compileValidSQL": "tsc compileValidSQL.tsx && mv compileValidSQL.js compileValidSQL.cjs",
+    "build:generateRestBindings": "tsc --downlevelIteration generateRestBindings.tsx && mv generateRestBindings.js generateRestBindings.cjs"
   },
   "files": [
     "compileValidSQL.tsx",
+    "compileValidSQL.cjs",
+    "generateRestBindings.tsx",
+    "generateRestBindings.cjs",
     "dist",
     "src"
   ]

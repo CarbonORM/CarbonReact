@@ -1,5 +1,3 @@
-import fs from "fs";
-import {inspect} from "util";
 import {axiosInstance, checkAllRequestsComplete, isVerbose} from "@carbonorm/carbonnode";
 import {waitFor} from "@testing-library/react";
 import ValidSQL, {validSQL} from "./validSQL";
@@ -8,6 +6,9 @@ export default function ({sqlDirectory = './logs/rest/', logsDirectory = './logs
     sqlDirectory?: string,
     logsDirectory?: string
 } = {}) {
+
+    const fs = require("fs");
+    const {inspect} = require("util");
 
     const originalWindowLocation = window.location
 

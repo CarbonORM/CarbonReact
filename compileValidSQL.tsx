@@ -1,11 +1,9 @@
 #!/usr/bin/env node
 
-import {readFile, readFileSync} from "fs";
-
 const c = require('ansi-colors');
 
 // Create an object to store the parsed arguments
-const args = {
+let args = {
     inputDir: './logs/rest/',
     outputDir: './logs/rest/',
     verbose: false,
@@ -20,13 +18,11 @@ for (let i = 2; i < process.argv.length; i++) {
     switch (arg) {
         case '--input':
         case '-i':
-            args.inputDir = process.argv[i + 1];
-            i++; // Skip the next argument since it's the value
+            args.inputDir = process.argv[++i];
             break;
         case '--output':
         case '-o':
-            args.outputDir = process.argv[i + 1];
-            i++; // Skip the next argument since it's the value
+            args.outputDir = process.argv[++i];
             break;
         case '--verbose':
         case '-v':
@@ -61,14 +57,18 @@ interface iApiResponseLine {
         any,
         any
     ],
-    "stmt": [
-        string, // sql
-        {
-            [key: string]: string,
-        }
-    ]
+    "stmt": {
+        // ['stmt']['sql']
+        sql: string, // sql
+        injections: { [injectionNumber: string]: string },
+        debugDumpParams: string[]
+    }
 }
 
+
+interface iRestfulTestFile {
+    [testName: string]: iApiResponseLine[]
+}
 
 const util = require('util');
 
@@ -79,7 +79,7 @@ const fs = require('fs');
 (async () => {
 
 
-    let jsonValidSqlFiles: any[] = [],
+    let jsonValidSqlFiles: iRestfulTestFile[] = [],
         validExternalRequests: iApiResponseLine[] = [];
 
 
@@ -93,7 +93,9 @@ const fs = require('fs');
 
         }
 
-        const resource = readFileSync(`${args.outputDir}${file}`, 'utf8');
+        const {readFileSync} = require("fs");
+
+        const resource = readFileSync(`${args.inputDir}${file}`, 'utf8');
 
         const json = JSON.parse(resource)
 
@@ -119,7 +121,10 @@ const fs = require('fs');
 
                     if (true === singleSqlInfoObject['CarbonPHP\\Restful\\RestSettings::$externalRestfulRequestsAPI']) {
 
-                        validExternalRequests.push(singleSqlInfoObject)
+                        singleSqlInfoObject.stmt.debugDumpParams = singleSqlInfoObject.stmt.debugDumpParams.slice(0,2)
+
+                        // change this to only the sql statement
+                        validExternalRequests.push(singleSqlInfoObject.stmt)
 
                     }
 
