@@ -10,6 +10,11 @@ lerna-debug.log*
 # generated files
 compileValidSQL.js
 compileValidSQL.cjs
+.fastRequest
+mysql.cnf
+mysqldump.sql
+src/api/rest/*
+C6MySqlDump.json
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json

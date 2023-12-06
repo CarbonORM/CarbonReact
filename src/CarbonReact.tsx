@@ -9,6 +9,7 @@ import 'react-toastify/dist/ReactToastify.min.css';
 import BackendThrowable from 'components/Errors/BackendThrowable';
 import Nest from 'components/Nest/Nest';
 import {initialRestfulObjectsState, iRestfulObjectArrayTypes} from "variables/C6";
+import CarbonWebSocket from "./components/WebSocket/CarbonWebSocket";
 
 
 
@@ -33,6 +34,16 @@ export const initialCarbonReactState: iCarbonReactState & iRestfulObjectArrayTyp
     ...initialRestfulObjectsState,
 }
 
+// @link https://stackoverflow.com/questions/3710204/how-to-check-if-a-string-is-a-valid-json-string
+export function isJsonString(str) {
+    try {
+        JSON.parse(str);
+    } catch (e) {
+        return false;
+    }
+    return true;
+}
+
 const CarbonReact= class <P = {}, S = {}> extends Component<{
     children?: ReactNode | ReactNode[],
 } & P, S & iCarbonReactState> {
@@ -42,6 +53,9 @@ const CarbonReact= class <P = {}, S = {}> extends Component<{
     } & any, any & iCarbonReactState>;
 
     static lastLocation = window.location.pathname;
+    static websocketUrl = (window.location.protocol === 'https:' ? 'wss://' : 'ws://') + window.location.host + ':8888/ws';
+    static websocketTimeoutSeconds : number = 250;
+    static websocketHeartbeatSeconds : number = 250;
 
     // @link https://github.com/welldone-software/why-did-you-render
     // noinspection JSUnusedGlobalSymbols
@@ -70,8 +84,6 @@ const CarbonReact= class <P = {}, S = {}> extends Component<{
     static getState<S>() : S {
         return CarbonReact.instance.state;
     }
-
-    websocketTimeout = 5000;
 
     shouldComponentUpdate(
         nextProps: Readonly<any>,
@@ -117,6 +129,7 @@ const CarbonReact= class <P = {}, S = {}> extends Component<{
 
         return <BrowserRouter>
             <GlobalHistory/>
+            <CarbonWebSocket />
             {this.props.children}
             <ToastContainer/>
         </BrowserRouter>;

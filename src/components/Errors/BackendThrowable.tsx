@@ -1,11 +1,11 @@
 import styles from './style.module.scss';
 import OutsideClickHandler from 'react-outside-click-handler';
+import CarbonReact from "../../CarbonReact";
+import {ReactElement} from "react";
 
-export default function BackendThrowable() {
+export default () : ReactElement => {
 
-    const CarbonORM = require('CarbonReact').default;
-
-    const bootstrap = CarbonORM.instance;
+    const bootstrap = CarbonReact.instance;
 
     const currentThrowable = bootstrap.state.backendThrowable[0];
 
@@ -33,8 +33,7 @@ export default function BackendThrowable() {
                         </div>
                         {valueIsString
                             ? ''
-                            :
-                            <pre className={styles.errorPre}>{JSON.stringify(currentThrowable[key], undefined, 4)}</pre>}
+                            : <pre className={styles.errorPre}>{JSON.stringify(currentThrowable[key], undefined, 4)}</pre>}
                     </div>;
                 })}
             </div>

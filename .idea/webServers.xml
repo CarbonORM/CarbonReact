@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="6b3bb78b-fedc-4933-86fd-ffedf1cea2c4" name="Affinity" url="http://127.0.0.1:3000">
+        <fileTransfer mountedRoot="$PROJECT_DIR$/../affinity.voltex.app" accessType="MOUNT" port="0" />
+      </webServer>
+    </option>
+  </component>
+</project>

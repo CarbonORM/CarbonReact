@@ -18,16 +18,6 @@ export interface iAlertButtonOptions {
     color: "default" | "primary" | "secondary" | "inherit" | "danger" | "info" | "success" | "warning" | undefined,
 }
 
-export function addAlert(props: iAlert) {
-
-    CarbonReact.instance.setState(previousState => ({
-        alertsWaiting: previousState.alertsWaiting.length === 0
-            ? [props]
-            : [...previousState.alertsWaiting, props]
-    }))
-
-}
-
 export interface iAlert {
     title: string,
     text: string,
@@ -38,9 +28,18 @@ export interface iAlert {
     then?: (value: string | undefined) => void,
     timeout?: number,
     footerText?: string,
-
     intercept?: boolean,
     backendThrowable?: { [key: string]: any },
+}
+
+export function addAlert(props: iAlert) {
+
+    CarbonReact.instance.setState(previousState => ({
+        alertsWaiting: previousState.alertsWaiting.length === 0
+            ? [props]
+            : [...previousState.alertsWaiting, props]
+    }))
+
 }
 
 export default function Alert() {
@@ -73,7 +72,7 @@ export default function Alert() {
             title: "Oh no! An issue occurred!",
             text: backendThrowable?.['DropInGaming\\PHP\\Errors\\DropException'] ?? 'An unknown issue occurred. Please try again.',
             timeout: 0,
-            footerText: hideExpandInformation ? '' : 'These alert footer options are only shown to admins and in development environments. Click "Expand" to see more details.',
+            footerText: hideExpandInformation ? '' : 'These alert footer options are only shown in development environments. Click "Expand" to see more details.',
             buttons: buttons,
             // backendThrowable has its own custom component that can be expanded (called in the Bootstrap component)
             // our then function will be called when the user clicks on the button providing the option to expand or close
