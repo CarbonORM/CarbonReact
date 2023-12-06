@@ -65,7 +65,7 @@ export function initiateWebsocket() {
 
         };
 
-        websocket.onmessage = (message: MessageEvent<string> ) => {
+        connection.onmessage = (message: MessageEvent<string> ) => {
 
             const parsedData = isJsonString(message?.data) ? JSON.parse(message?.data) : message?.data;
 
@@ -81,7 +81,7 @@ export function initiateWebsocket() {
         window.addEventListener("focus", () => initiateWebsocket());
 
         // websocket onclose event listener
-        websocket.addEventListener('close', event => {
+        connection.addEventListener('close', event => {
 
             let reason;
 
@@ -153,9 +153,9 @@ export function initiateWebsocket() {
         });
 
         // websocket onerror event listener
-        websocket.addEventListener('websocket error', (e: Event) => {
+        connection.addEventListener('websocket error', (e: Event) => {
             console.error("Socket encountered error: ", e, JSON.stringify(e));
-            websocket.close();
+            connection.close();
         });
 
     });
