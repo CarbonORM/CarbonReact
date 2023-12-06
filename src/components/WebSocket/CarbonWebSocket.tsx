@@ -1,13 +1,14 @@
 import CarbonReact, {isJsonString} from "CarbonReact";
 import {addAlert} from "../Alert/Alert";
 import {useEffectOnce} from "../../api/hoc/useEffectOnce";
+import {tC6Tables} from "@carbonorm/carbonnode";
 
 
 /**
  * @function connect
  * This function establishes a connection with the websocket and also ensures constant reconnection if connection closes
  **/
-export function initiateWebsocket() {
+export function initiateWebsocket({TABLES = undefined}: {TABLES?: tC6Tables} = {}) {
 
     const {websocket} = CarbonReact.instance.state;
 
@@ -18,9 +19,7 @@ export function initiateWebsocket() {
             title: 'Browser does not support websockets, live updates will fail. You may need to refresh the page to see the newest content.',
             text: 'Please use a modern browser.',
             icon: 'warning',
-
         })
-
 
     }
 
@@ -74,7 +73,14 @@ export function initiateWebsocket() {
                 websocketData: prevState.websocketData.concat(parsedData), // JSON.parse no good - base64?
             }));
 
-            // WebSocketGlobalListeners(parsedData)
+            console.log('going to impl TABLES', TABLES)
+
+            /*if (undefined !== TABLES) {
+
+                TABLES.
+
+
+            }*/
 
         };
 

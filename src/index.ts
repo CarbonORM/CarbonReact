@@ -4,6 +4,7 @@
 
 export { default as CarbonReact } from "./CarbonReact";
 export * from "./CarbonReact";
+export * from "./api/hoc/useEffectOnce";
 export { default as Alert } from "./components/Alert/Alert";
 export * from "./components/Alert/Alert";
 export { default as AccessDenied } from "./components/Errors/AccessDenied";
@@ -20,6 +21,8 @@ export { default as Nest } from "./components/Nest/Nest";
 export * from "./components/Nest/Nest";
 export { default as Popup } from "./components/Popup/Popup";
 export * from "./components/Popup/Popup";
+export { default as CarbonWebSocket } from "./components/WebSocket/CarbonWebSocket";
+export * from "./components/WebSocket/CarbonWebSocket";
 export * from "./hoc/GlobalHistory";
 export * from "./hoc/KeysMatching";
 export { default as addValidSQL } from "./hoc/addValidSQL";

@@ -1,6 +1,6 @@
 {
   "name": "@carbonorm/carbonreact",
-  "version": "3.4.0",
+  "version": "3.4.1",
   "browser": "dist/index.umd.js",
   "module": "dist/index.esm.js",
   "main": "dist/index.cjs.js",
@@ -70,14 +70,13 @@
   "scripts": {
     "prepublishOnly": "npm run build",
     "c6": "wget https://raw.githubusercontent.com/RichardTMiles/CarbonPHP/lts/view/C6.tsx -O src/variables/C6.tsx",
-    "build": "rm -rf ./dist/ && npm run build:css && npm run build:index && rollup -c && npm run build:compileValidSQL && npm run build:generateRestBindings",
+    "build": "rm -rf ./dist/ && npm run build:css && npm run build:index && rollup -c && npm run build:compileValidSQL",
     "dev": "rollup -c -w",
     "test": "node test/test.js",
     "pretest": "npm run build",
     "build:index": "npx barrelsby --directory ./src --delete --exclude '(jestHoc|\\.test|\\.d).(js|tsx?)$' --exportDefault --verbose --mode top",
     "build:css": "sass ./src:./src && typed-scss-modules 'src/**/*.?(s)css' --nameFormat all --exportType default src",
-    "build:compileValidSQL": "tsc compileValidSQL.tsx && mv compileValidSQL.js compileValidSQL.cjs",
-    "build:generateRestBindings": "tsc --downlevelIteration generateRestBindings.tsx && mv generateRestBindings.js generateRestBindings.cjs"
+    "build:compileValidSQL": "tsc compileValidSQL.tsx && mv compileValidSQL.js compileValidSQL.cjs"
   },
   "files": [
     "compileValidSQL.tsx",
