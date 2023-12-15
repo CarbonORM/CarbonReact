@@ -4,11 +4,22 @@ import {useEffectOnce} from "../../api/hoc/useEffectOnce";
 import {tC6Tables} from "@carbonorm/carbonnode";
 
 
+export interface iCarbonWebSocketProps {
+    url?: string,
+    timeoutSeconds?: number,
+    heartbeatSeconds?: number,
+    TABLES?: tC6Tables
+}
+
 /**
  * @function connect
  * This function establishes a connection with the websocket and also ensures constant reconnection if connection closes
  **/
-export function initiateWebsocket({TABLES = undefined}: {TABLES?: tC6Tables} = {}) {
+export function initiateWebsocket({TABLES = undefined,
+                                      url = 'ws://localhost:8080/ws',
+                                      timeoutSeconds = 250,
+                                      heartbeatSeconds = 60
+}: iCarbonWebSocketProps = {}) {
 
     const {websocket} = CarbonReact.instance.state;
 
@@ -32,9 +43,9 @@ export function initiateWebsocket({TABLES = undefined}: {TABLES?: tC6Tables} = {
 
     let connectInterval;
 
-    const connection = new WebSocket(CarbonReact.websocketUrl);
+    const connection = new WebSocket(url);
 
-    console.log("Connecting websocket url", CarbonReact.websocketUrl);
+    console.log("Connecting websocket url", url);
 
     CarbonReact.instance.setState({
         websocket: connection
@@ -42,7 +53,7 @@ export function initiateWebsocket({TABLES = undefined}: {TABLES?: tC6Tables} = {
 
         connection.onopen = () => {
 
-            console.log('WebSocket Client Connected To :: ' + CarbonReact.websocketUrl);
+            console.log('WebSocket Client Connected To :: ' + url);
 
             clearTimeout(connectInterval); // clear Interval on open of websocket connection
 
@@ -56,7 +67,7 @@ export function initiateWebsocket({TABLES = undefined}: {TABLES?: tC6Tables} = {
 
                 websocket.send("ping");
 
-                setTimeout(heartbeat, CarbonReact.websocketHeartbeatSeconds * 1000);
+                setTimeout(heartbeat, heartbeatSeconds * 1000);
 
             }
 
@@ -64,7 +75,7 @@ export function initiateWebsocket({TABLES = undefined}: {TABLES?: tC6Tables} = {
 
         };
 
-        connection.onmessage = (message: MessageEvent<string> ) => {
+        connection.onmessage = (message: MessageEvent<string>) => {
 
             const parsedData = isJsonString(message?.data) ? JSON.parse(message?.data) : message?.data;
 
@@ -73,7 +84,7 @@ export function initiateWebsocket({TABLES = undefined}: {TABLES?: tC6Tables} = {
                 websocketData: prevState.websocketData.concat(parsedData), // JSON.parse no good - base64?
             }));
 
-            console.log('going to impl TABLES', TABLES)
+            console.info('todo - going to impl TABLES', TABLES)
 
             /*if (undefined !== TABLES) {
 
@@ -97,9 +108,9 @@ export function initiateWebsocket({TABLES = undefined}: {TABLES?: tC6Tables} = {
 
             const retry = () => {
 
-                const retrySeconds = Math.min(5000, (CarbonReact.websocketTimeoutSeconds + CarbonReact.websocketTimeoutSeconds) * 1000)
+                const retrySeconds = Math.min(5000, (timeoutSeconds + timeoutSeconds) * 1000)
 
-                CarbonReact.websocketTimeoutSeconds = retrySeconds;
+                timeoutSeconds = retrySeconds;
 
                 console.log(`WebSocket reconnect will be attempted in ${retrySeconds} second(s).`)
 
@@ -168,11 +179,11 @@ export function initiateWebsocket({TABLES = undefined}: {TABLES?: tC6Tables} = {
 
 }
 
-export default function () {
+export default function (props: iCarbonWebSocketProps) {
 
     useEffectOnce(() => {
 
-        initiateWebsocket()
+        initiateWebsocket(props)
 
     })
 

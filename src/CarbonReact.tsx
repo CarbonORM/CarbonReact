@@ -53,9 +53,6 @@ const CarbonReact= class <P = {}, S = {}> extends Component<{
     } & any, any & iCarbonReactState>;
 
     static lastLocation = window.location.pathname;
-    static websocketUrl = (window.location.protocol === 'https:' ? 'wss://' : 'ws://') + window.location.hostname + ':8888/ws';
-    static websocketTimeoutSeconds : number = 250;
-    static websocketHeartbeatSeconds : number = 250;
 
     // @link https://github.com/welldone-software/why-did-you-render
     // noinspection JSUnusedGlobalSymbols
