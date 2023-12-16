@@ -1,6 +1,6 @@
 {
   "name": "@carbonorm/carbonreact",
-  "version": "3.4.4",
+  "version": "3.4.5",
   "browser": "dist/index.umd.js",
   "module": "dist/index.esm.js",
   "main": "dist/index.cjs.js",
@@ -70,7 +70,7 @@
   "scripts": {
     "prepublishOnly": "npm run build",
     "c6": "wget https://raw.githubusercontent.com/RichardTMiles/CarbonPHP/lts/view/C6.tsx -O src/variables/C6.tsx",
-    "build": "rm -rf ./dist/ && npm run build:css && npm run build:index && rollup -c && npm run build:compileValidSQL",
+    "build": "rm -rf ./dist/ ./src/api/rest/ && npm run build:css && npm run build:index && rollup -c && npm run build:compileValidSQL",
     "dev": "rollup -c -w",
     "test": "node test/test.js",
     "pretest": "npm run build",
