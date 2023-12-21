@@ -12,6 +12,8 @@ export interface iGetStatefulObjectWithWhere {
 export default ({request}: { request: iAPI<any> & iWHERE }) => {
 
 
+    console.log('request', request)
+
 
 
 }

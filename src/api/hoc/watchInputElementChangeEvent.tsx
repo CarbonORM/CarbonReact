@@ -1,7 +1,7 @@
 import {ChangeEvent} from "react";
 import {timeout} from "@carbonorm/carbonnode";
 
-export default function watchInputElementChangeEvent(event: ChangeEvent<HTMLInputElement>, cb: (event: ChangeEvent<HTMLInputElement>) => (Promise<boolean> | boolean), timeoutMs: number = 3000) {
+export default function watchInputElementChangeEvent(event: ChangeEvent<HTMLInputElement|HTMLTextAreaElement>, cb: (event: ChangeEvent<HTMLInputElement|HTMLTextAreaElement>) => (Promise<boolean> | boolean), timeoutMs: number = 3000) {
 
     const target = event.target;
 

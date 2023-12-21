@@ -3,14 +3,12 @@ import changed from "hoc/changed";
 import {GlobalHistory} from "hoc/GlobalHistory";
 import hexToRgb from "hoc/hexToRgb";
 import {Component, ReactNode} from 'react';
-import {BrowserRouter} from 'react-router-dom';
 import {ToastContainer} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.min.css';
 import BackendThrowable from 'components/Errors/BackendThrowable';
 import Nest from 'components/Nest/Nest';
 import {initialRestfulObjectsState, iRestfulObjectArrayTypes} from "variables/C6";
 import CarbonWebSocket from "./components/WebSocket/CarbonWebSocket";
-
 
 
 // our central container, single page application is best with the DigApi
@@ -44,18 +42,17 @@ export function isJsonString(str) {
     return true;
 }
 
-const CarbonReact= class <P = {}, S = {}> extends Component<{
+const CarbonReact = class<P = {}, S = {}> extends Component<{
     children?: ReactNode | ReactNode[],
+    shouldStatePersist?: boolean,
 } & P, S & iCarbonReactState> {
 
     static instance: Component<{
         children?: ReactNode | ReactNode[],
     } & any, any & iCarbonReactState>;
 
+    static persistentState?: iCarbonReactState = undefined
     static lastLocation = window.location.pathname;
-    static websocketUrl = (window.location.protocol === 'https:' ? 'wss://' : 'ws://') + window.location.host + ':8888/ws';
-    static websocketTimeoutSeconds : number = 250;
-    static websocketHeartbeatSeconds : number = 250;
 
     // @link https://github.com/welldone-software/why-did-you-render
     // noinspection JSUnusedGlobalSymbols
@@ -65,7 +62,15 @@ const CarbonReact= class <P = {}, S = {}> extends Component<{
 
         super(props);
 
-        this.state = initialCarbonReactState as unknown as S & iCarbonReactState;
+        if (CarbonReact.persistentState !== undefined && this.props.shouldStatePersist !== false) {
+
+            this.state = CarbonReact.persistentState as S & iCarbonReactState;
+
+        } else {
+
+            this.state = initialCarbonReactState as unknown as S & iCarbonReactState;
+
+        }
 
         // This should only ever be done here, when the full state is being trashed.
         clearCache({
@@ -81,7 +86,7 @@ const CarbonReact= class <P = {}, S = {}> extends Component<{
 
     }
 
-    static getState<S>() : S {
+    static getState<S>(): S {
         return CarbonReact.instance.state;
     }
 
@@ -90,7 +95,18 @@ const CarbonReact= class <P = {}, S = {}> extends Component<{
         nextState: Readonly<iCarbonReactState>,
         _nextContext: any): boolean {
 
+        if (this.props.shouldStatePersist === false) {
+
+            CarbonReact.persistentState = undefined;
+
+        } else {
+
+            CarbonReact.persistentState = nextState;
+
+        }
+
         changed(this.constructor.name + ' (DigApi)', 'props', this.props, nextProps);
+
         changed(this.constructor.name + ' (DigApi)', 'state', this.state, nextState);
 
         return true
@@ -127,12 +143,12 @@ const CarbonReact= class <P = {}, S = {}> extends Component<{
 
         }
 
-        return <BrowserRouter>
+        return <>
             <GlobalHistory/>
-            <CarbonWebSocket />
+            <CarbonWebSocket/>
             {this.props.children}
             <ToastContainer/>
-        </BrowserRouter>;
+        </>;
 
     }
 
