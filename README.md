@@ -204,7 +204,7 @@ stateful operations must be wrapped in a function and thus must not be run durin
 Updating state is as simple as calling `CarbonORM.instance.setState({})`. The class name `CarbonORM` can be replaced with
 any name of your liking. Typically, you will want to use the name of your project. 
 
-(ui.tsx)[https://github.com/CarbonORM/CarbonORM.dev/blob/www/src/state/ui.tsx]
+[ui.tsx](https://github.com/CarbonORM/CarbonORM.dev/blob/www/src/state/ui.tsx)
 ```typescript jsx
 import CarbonORM from "CarbonORM";
 
