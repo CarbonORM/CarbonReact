@@ -1,25 +1,28 @@
 import CarbonReact, {isJsonString} from "CarbonReact";
 import {addAlert} from "../Alert/Alert";
 import {useEffectOnce} from "../../api/hoc/useEffectOnce";
-import {tC6Tables} from "@carbonorm/carbonnode";
+import {tC6Tables, tWsLiveUpdate} from "@carbonorm/carbonnode";
 
 
 export interface iCarbonWebSocketProps {
     url?: string,
     timeoutSeconds?: number,
     heartbeatSeconds?: number,
-    TABLES?: tC6Tables
+    TABLES?: tC6Tables,
+    WsLiveUpdates?: tWsLiveUpdate,
 }
 
 /**
  * @function connect
  * This function establishes a connection with the websocket and also ensures constant reconnection if connection closes
  **/
-export function initiateWebsocket({TABLES = undefined,
+export function initiateWebsocket({
+                                      TABLES = undefined,
+                                      WsLiveUpdates = undefined,
                                       url = 'ws://localhost:8080/ws',
                                       timeoutSeconds = 250,
                                       heartbeatSeconds = 60
-}: iCarbonWebSocketProps = {}) {
+                                  }: iCarbonWebSocketProps = {}) {
 
     const {websocket} = CarbonReact.instance.state;
 
@@ -79,19 +82,95 @@ export function initiateWebsocket({TABLES = undefined,
 
             const parsedData = isJsonString(message?.data) ? JSON.parse(message?.data) : message?.data;
 
+            if (message.data === 'pong') {
+                return;
+            }
+
             CarbonReact.instance.setState((prevState: Readonly<any>) => ({
                 websocketEvents: prevState.websocketEvents.concat(message),
                 websocketData: prevState.websocketData.concat(parsedData), // JSON.parse no good - base64?
-            }));
+            }), () => {
 
-            console.info('todo - going to impl TABLES', TABLES)
+                if (undefined === TABLES) {
 
-            /*if (undefined !== TABLES) {
+                    console.log('WebSocket updates without the TABLES property passed will not automatically update the state.')
 
-                TABLES.
+                    return;
+
+                }
+
+                if (undefined === WsLiveUpdates) {
+
+                    console.log('WebSocket updates without the WsLiveUpdates property passed will not automatically update the state.')
+
+                    return;
+
+                }
+
+                if (parsedData?.REST) {
+
+                    const TABLE_NAME: string = parsedData?.REST?.TABLE_NAME;
+
+                    const TABLE_PREFIX: string = parsedData?.REST?.TABLE_PREFIX;
+
+                    const METHOD: string = parsedData?.REST?.METHOD;
+
+                    const REQUEST: { [key:string]: any } = parsedData?.REST?.REQUEST;
+
+                    const REQUEST_PRIMARY_KEY: {
+                        [key: string]: string
+                    } = parsedData?.REST?.REQUEST_PRIMARY_KEY ?? null;
+
+                    if (null === REQUEST_PRIMARY_KEY) {
+
+                        console.log('WebSocket updates without a primary key are not yet supported.')
+
+                        return;
+
+                    }
+
+                    console.log('todo - going to impl REST', TABLE_NAME, METHOD, REQUEST_PRIMARY_KEY, parsedData?.REST)
+
+                    const TABLE_NAME_SHORT = TABLE_NAME.substring(TABLE_PREFIX.length);
+
+                    const currentCache: [] = CarbonReact.instance.state[TABLE_NAME_SHORT]
+
+                    // just because we have a websocket update, doesn't mean we need the update
+                    // check to see if the primary key is in the current cache
+                    const c6Table = TABLES[TABLE_NAME_SHORT] ?? null;
+
+                    if (null === c6Table) {
+
+                        console.error('WebSocket update could not find (' + TABLE_NAME_SHORT + ') in the TABLES property passed.', TABLES)
+
+                        return;
+
+                    }
+
+                    const primaryKeyKeys = Object.keys(REQUEST_PRIMARY_KEY)
+
+                    const elementsToUpdate = currentCache.filter((row: any) => {
+                        for (const element of primaryKeyKeys) {
+                            if (REQUEST_PRIMARY_KEY[element] !== row[element]) {
+                                return false
+                            }
+                        }
+                        return true
+                    })
 
 
-            }*/
+                    const updatedElements = elementsToUpdate.map((row: any) => {
+                        return {
+                            ...row,
+                            ...REQUEST
+                        }
+                    })
+
+                    WsLiveUpdates[TABLE_NAME_SHORT][METHOD]({}, updatedElements)
+
+                }
+
+            });
 
         };
 
