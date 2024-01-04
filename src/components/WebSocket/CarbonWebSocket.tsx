@@ -150,21 +150,43 @@ export function initiateWebsocket({
                     const primaryKeyKeys = Object.keys(REQUEST_PRIMARY_KEY)
 
                     const elementsToUpdate = currentCache.filter((row: any) => {
+
                         for (const element of primaryKeyKeys) {
-                            if (REQUEST_PRIMARY_KEY[element] !== row[element]) {
+
+                            // remove the table name from the column name
+                            const column = element.split('.')[1]
+
+                            console.log('column', column, REQUEST_PRIMARY_KEY[element], row[column])
+
+                            if (REQUEST_PRIMARY_KEY[element] !== row[column]) {
+
                                 return false
+
                             }
+
                         }
+
                         return true
+
                     })
 
+                    console.log('elementsToUpdate', elementsToUpdate)
+
+                    if (elementsToUpdate.length === 0) {
+                        console.error('Could not find any elements to update in the cache.', elementsToUpdate, primaryKeyKeys, REQUEST_PRIMARY_KEY, currentCache)
+                        return;
+                    }
 
                     const updatedElements = elementsToUpdate.map((row: any) => {
+
                         return {
                             ...row,
                             ...REQUEST
                         }
+
                     })
+
+                    console.log('updatedElements', updatedElements)
 
                     WsLiveUpdates[TABLE_NAME_SHORT][METHOD]({}, updatedElements)
 
