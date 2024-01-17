@@ -48,7 +48,7 @@ ideally once it has mounted it never gets unmounted. In application where this i
 application even if the component is unmounted. The behavior of accessing or updating state while the component is 
 unknown (undefined) and should be avoided. The example below shows a simple implementation of CarbonReact. Our user 
 defined component is in `CarbonORM` which is written to extend the `CarbonReact` class. Your implementation must also 
-extend `CarbonORM`.
+extend `CarbonReact`. The name `CarbonORM` is arbitrary and can be changed to your application's name.
 
 
 [index.tsx](https://github.com/CarbonORM/CarbonORM.dev/blob/www/src/index.tsx)
