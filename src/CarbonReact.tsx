@@ -2,16 +2,16 @@ import {clearCache} from "@carbonorm/carbonnode";
 import changed from "hoc/changed";
 import {GlobalHistory} from "hoc/GlobalHistory";
 import hexToRgb from "hoc/hexToRgb";
-import {Component, ReactNode} from 'react';
+import {Component, Context, createContext, useContext, ReactElement, ReactNode} from 'react';
 import {ToastContainer} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.min.css';
 import BackendThrowable from 'components/Errors/BackendThrowable';
 import Nest from 'components/Nest/Nest';
 import {initialRestfulObjectsState, iRestfulObjectArrayTypes} from "variables/C6";
-import CarbonWebSocket from "./components/WebSocket/CarbonWebSocket";
+import CarbonWebSocket, {iCarbonWebSocketProps} from "./components/WebSocket/CarbonWebSocket";
 
 
-// our central container, single page application is best with the DigApi
+// our central container, single page application
 export interface iCarbonReactState {
     alertsWaiting: any[],
     websocketEvents: MessageEvent[],
@@ -33,7 +33,7 @@ export const initialCarbonReactState: iCarbonReactState & iRestfulObjectArrayTyp
 }
 
 // @link https://stackoverflow.com/questions/3710204/how-to-check-if-a-string-is-a-valid-json-string
-export function isJsonString(str) {
+export function isJsonString(str: string) {
     try {
         JSON.parse(str);
     } catch (e) {
@@ -42,40 +42,62 @@ export function isJsonString(str) {
     return true;
 }
 
-const CarbonReact = class<P = {}, S = {}> extends Component<{
+const persistentStateMap = new Map<string, iCarbonReactState>();
+
+abstract class CarbonReact<P = {}, S = {}> extends Component<{
     children?: ReactNode | ReactNode[],
-    shouldStatePersist?: boolean,
+    instanceId?: string,
+    websocket?: Omit<iCarbonWebSocketProps, "instance"> | boolean
 } & P, S & iCarbonReactState> {
 
-    static instance: Component<{
-        children?: ReactNode | ReactNode[],
-    } & any, any & iCarbonReactState>;
+    context: Context<S & iCarbonReactState> = createContext(this.state);
 
-    static persistentState?: iCarbonReactState = undefined
+    // Private static member
+    protected static instance: CarbonReact;
+
+    protected static getState() {
+        return CarbonReact.instance.state;
+    }
+
+    protected static useContext() {
+        return () => useContext(CarbonReact.instance.context);
+    }
+
     static lastLocation = window.location.pathname;
 
     // @link https://github.com/welldone-software/why-did-you-render
     // noinspection JSUnusedGlobalSymbols
     static whyDidYouRender = true;
 
-    constructor(props) {
+    protected constructor(props: {
+        children?: ReactNode | ReactNode[];
+        shouldStatePersist?: boolean | undefined;
+        websocket?: boolean | iCarbonWebSocketProps | undefined;
+    } & P) {
 
         super(props);
 
-        if (CarbonReact.persistentState !== undefined && this.props.shouldStatePersist !== false) {
+        console.log('CarbonORM TSX CONSTRUCTOR');
 
-            this.state = CarbonReact.persistentState as S & iCarbonReactState;
+        Object.assign(this, {
+            instance: this
+        })
+
+        if (this.props.instanceId && persistentStateMap.has(this.props.instanceId)) {
+
+            this.state = persistentStateMap.get(this.props.instanceId) as S & iCarbonReactState;
 
         } else {
+
+            // This should only ever be done here, when the full state is being trashed.
+            // todo - does this suck in context of multiple instances?
+            clearCache({
+                ignoreWarning: true
+            });
 
             this.state = initialCarbonReactState as unknown as S & iCarbonReactState;
 
         }
-
-        // This should only ever be done here, when the full state is being trashed.
-        clearCache({
-            ignoreWarning: true
-        });
 
         /** We can think of our app as having one state; this state.
          * Long-term, I'd like us to store this state to local storage and only load updates on reload...
@@ -86,28 +108,19 @@ const CarbonReact = class<P = {}, S = {}> extends Component<{
 
     }
 
-    static getState<S>(): S {
-        return CarbonReact.instance.state;
-    }
 
     shouldComponentUpdate(
         nextProps: Readonly<any>,
         nextState: Readonly<iCarbonReactState>,
         _nextContext: any): boolean {
 
-        if (this.props.shouldStatePersist === false) {
-
-            CarbonReact.persistentState = undefined;
-
-        } else {
-
-            CarbonReact.persistentState = nextState;
-
+        if (this.props.instanceId) {
+            persistentStateMap.set(this.props.instanceId, nextState);
         }
 
-        changed(this.constructor.name + ' (DigApi)', 'props', this.props, nextProps);
+        changed(this.constructor.name + ' (C6Api)', 'props', this.props, nextProps);
 
-        changed(this.constructor.name + ' (DigApi)', 'state', this.state, nextState);
+        changed(this.constructor.name + ' (C6Api)', 'state', this.state, nextState);
 
         return true
 
@@ -124,7 +137,7 @@ const CarbonReact = class<P = {}, S = {}> extends Component<{
         }
     }
 
-    render() {
+    render(): ReactElement {
 
         console.log('CarbonORM TSX RENDER');
 
@@ -138,15 +151,20 @@ const CarbonReact = class<P = {}, S = {}> extends Component<{
 
             return <>
                 {nest}
-                <BackendThrowable/>
+                <BackendThrowable instance={CarbonReact.instance}/>
             </>;
 
         }
 
+        const Context = this.context.Provider;
+
         return <>
             <GlobalHistory/>
-            <CarbonWebSocket/>
-            {this.props.children}
+            {this.props.websocket &&
+                <CarbonWebSocket {...(true === this.props.websocket ? {} : this.props.websocket)} instance={CarbonReact.instance}/>}
+            <Context value={this.state}>
+                {this.props.children}
+            </Context>
             <ToastContainer/>
         </>;
 

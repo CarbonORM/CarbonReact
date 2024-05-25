@@ -23,6 +23,7 @@ const clone = (obj: any) => {
 const changed = (name: string, context: "state" | "props", old, v) => {
 
     let groupStarted = false
+
     const keys = Object.keys(old);
 
     for (let i = 0; i < keys.length; i++) {

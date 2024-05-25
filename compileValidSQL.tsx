@@ -15,6 +15,7 @@ for (let i = 2; i < process.argv.length; i++) {
 
     const arg = process.argv[i];
 
+    // noinspection FallThroughInSwitchStatementJS
     switch (arg) {
         case '--input':
         case '-i':
@@ -35,7 +36,6 @@ for (let i = 2; i < process.argv.length; i++) {
             console.log(c.cyan('--output or -o: Output directory'));
             console.log(c.cyan('--verbose or -v: Enable verbose mode'));
             process.exit(0);
-            break;
         default:
             console.error(`Unknown argument: ${arg}`);
             process.exit(1);

@@ -1,36 +1,39 @@
-import CarbonReact from "CarbonReact";
+import CarbonReact, {iCarbonReactState} from "CarbonReact";
 import {tRestfulObjectArrayValues, tStatefulApiData} from "variables/C6";
 import {KeysMatching} from "./KeysMatching";
 
 
 //ObjectType, UniqueIdType extends keyof ObjectType
 // @link https://www.typescriptlang.org/docs/handbook/2/mapped-types.html
-export default function deleteRestfulObjectArrays<ObjectType = tRestfulObjectArrayValues, S = typeof CarbonReact.instance.state, P = typeof CarbonReact.instance.props>
-(dataOrCallback: ObjectType[] | (<K extends keyof S>(
-     state: ((prevState: Readonly<S>, props: Readonly<P>) => (Pick<S, K> | S | null)) | (Pick<S, K> | S | null),
-     callback?: () => void
- ) => null|(ObjectType[])),
- stateKey: KeysMatching<S, tStatefulApiData<ObjectType>>,
- uniqueObjectId: (keyof ObjectType) | (keyof ObjectType)[],
- callback?: () => void): void {
+export default function deleteRestfulObjectArrays<
+    ObjectType = tRestfulObjectArrayValues,
+    S extends iCarbonReactState = iCarbonReactState,
+    P = CarbonReact['props']
+>(
+    instance: CarbonReact,
+    dataOrCallback: ObjectType[] | ((state: Readonly<S>, props: Readonly<P>) => ObjectType[] | null),
+    stateKey: KeysMatching<S, tStatefulApiData<ObjectType>>,
+    uniqueObjectId: (keyof ObjectType) | (keyof ObjectType)[],
+    callback?: () => void
+): void {
 
     const uniqueObjectIds = uniqueObjectId instanceof Array ? uniqueObjectId : [uniqueObjectId];
 
-    return CarbonReact.instance.setState((previousBootstrapState, props) => {
+    instance.setState((previousBootstrapState: Readonly<S>, props: Readonly<P>): {} | null => {
+        let newOrReplacementData: ObjectType[] = [];
 
-        let newOrReplacementData: ObjectType[]  = [];
+        if (Array.isArray(dataOrCallback)) {
 
-        if (dataOrCallback instanceof Array) {
+            newOrReplacementData = dataOrCallback;
 
-            newOrReplacementData = dataOrCallback
+        } else if (typeof dataOrCallback === 'function') {
 
-        } else if (dataOrCallback instanceof Function) {
+            const callbackReturn = dataOrCallback(previousBootstrapState, props);
 
-            let callbackReturn = dataOrCallback(previousBootstrapState, props);
+            if (callbackReturn === null) {
 
-            if (null === callbackReturn) {
-
-                return ;
+                // No updates needed (noop)
+                return null;
 
             }
 
@@ -38,40 +41,20 @@ export default function deleteRestfulObjectArrays<ObjectType = tRestfulObjectArr
 
         } else {
 
-            throw Error('The dataOrCallback parameter was not an array or function')
+            throw new Error('The dataOrCallback parameter was not an array or function');
 
         }
 
-        const previousStateProperty : ObjectType[] = previousBootstrapState[stateKey];
+        const previousStateProperty: tStatefulApiData<ObjectType> = previousBootstrapState[stateKey] as tStatefulApiData<ObjectType>;
+
+        const updatedStateProperty = previousStateProperty?.filter(item =>
+            !newOrReplacementData.some(value =>
+                uniqueObjectIds.every(uniqueId => value[uniqueId] === item[uniqueId])
+            )
+        ) ?? [];
 
         return {
-            [stateKey]: [
-
-                ...previousStateProperty?.filter(item => false === (newOrReplacementData?.find(value => {
-
-                    let isMatch = true;
-
-                    uniqueObjectIds.find(uniqueObjectId => {
-
-                        if (value[uniqueObjectId] !== item[uniqueObjectId]) {
-
-                            isMatch = false;
-
-                            return true;
-
-                        }
-
-                        return false;
-
-                    })
-
-                    return isMatch;
-
-                }) || false)) || []
-
-            ]
-        }
+            [stateKey]: updatedStateProperty
+        };
     }, callback);
-
 }
-

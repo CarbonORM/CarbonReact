@@ -3,18 +3,20 @@ import OutsideClickHandler from 'react-outside-click-handler';
 import CarbonReact from "../../CarbonReact";
 import {ReactElement} from "react";
 
-export default () : ReactElement => {
+export default (props: {
+    instance: CarbonReact,
+}): ReactElement => {
 
-    const bootstrap = CarbonReact.instance;
+    const {instance} = props;
 
-    const currentThrowable = bootstrap.state.backendThrowable[0];
+    const currentThrowable = instance.state.backendThrowable[0];
 
-    console.log([bootstrap.state.backendThrowable, currentThrowable]);
+    console.log([instance.state.backendThrowable, currentThrowable]);
 
     return <div className={styles.maintenanceHero}>
         <h1 className={styles.httpStatusCode}>{currentThrowable?.status || 500}</h1>
         <OutsideClickHandler
-            onOutsideClick={() => bootstrap.setState(currentState => ({ backendThrowable: currentState.backendThrowable.slice(1) }))}>
+            onOutsideClick={() => instance.setState(currentState => ({backendThrowable: currentState.backendThrowable.slice(1)}))}>
             <div className={styles.centeredContainer}>
                 {Object.keys(currentThrowable).map((key, index) => {
 
@@ -26,14 +28,15 @@ export default () : ReactElement => {
                         <div className={styles.errorTextGeneral}> &gt; <span className={styles.errorKeys}>{key}</span>:
                             {valueIsString
                                 ? (valueIsCode ? <div
-                                        style={{ backgroundColor: 'black', fontSize: 'xx-small' }}
-                                        dangerouslySetInnerHTML={{ __html: currentThrowable[key] }} /> :
+                                        style={{backgroundColor: 'black', fontSize: 'xx-small'}}
+                                        dangerouslySetInnerHTML={{__html: currentThrowable[key]}}/> :
                                     <i className={styles.errorValues}>&quot;{currentThrowable[key]}&quot;</i>)
                                 : ''}
                         </div>
                         {valueIsString
                             ? ''
-                            : <pre className={styles.errorPre}>{JSON.stringify(currentThrowable[key], undefined, 4)}</pre>}
+                            : <pre
+                                className={styles.errorPre}>{JSON.stringify(currentThrowable[key], undefined, 4)}</pre>}
                     </div>;
                 })}
             </div>

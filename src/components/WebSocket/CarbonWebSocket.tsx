@@ -1,30 +1,35 @@
-import CarbonReact, {isJsonString} from "CarbonReact";
+import  CarbonReact, {isJsonString} from "CarbonReact";
 import {addAlert} from "../Alert/Alert";
 import {useEffectOnce} from "../../api/hoc/useEffectOnce";
-import {tC6Tables, tWsLiveUpdate} from "@carbonorm/carbonnode";
+import {tC6Tables, tC6RestApi} from "@carbonorm/carbonnode";
 
 
 export interface iCarbonWebSocketProps {
     url?: string,
     timeoutSeconds?: number,
     heartbeatSeconds?: number,
+    instance: CarbonReact,
     TABLES?: tC6Tables,
-    WsLiveUpdates?: tWsLiveUpdate,
+    WsLiveUpdates?: tC6RestApi,
 }
 
 /**
  * @function connect
  * This function establishes a connection with the websocket and also ensures constant reconnection if connection closes
  **/
-export function initiateWebsocket({
-                                      TABLES = undefined,
-                                      WsLiveUpdates = undefined,
-                                      url = 'ws://localhost:8080/ws',
-                                      timeoutSeconds = 250,
-                                      heartbeatSeconds = 60
-                                  }: iCarbonWebSocketProps = {}) {
+export function initiateWebsocket(props: iCarbonWebSocketProps) {
 
-    const {websocket} = CarbonReact.instance.state;
+    let {
+        instance,
+        TABLES = undefined,
+        WsLiveUpdates = undefined,
+        url = 'ws' + (window.location.protocol === 'https:' ? 's' : '') + '://' + window.location.host + '/carbonorm/websocket',
+        timeoutSeconds = 250,
+        heartbeatSeconds = 60
+    } = props;
+
+    const {websocket} = instance.state;
+
 
     if (!("WebSocket" in window)) {
 
@@ -33,6 +38,7 @@ export function initiateWebsocket({
             title: 'Browser does not support websockets, live updates will fail. You may need to refresh the page to see the newest content.',
             text: 'Please use a modern browser.',
             icon: 'warning',
+            instance
         })
 
     }
@@ -50,7 +56,7 @@ export function initiateWebsocket({
 
     console.log("Connecting websocket url", url);
 
-    CarbonReact.instance.setState({
+    instance.setState({
         websocket: connection
     }, () => {
 
@@ -62,7 +68,7 @@ export function initiateWebsocket({
 
             function heartbeat() {
 
-                const {websocket} = CarbonReact.instance.state;
+                const {websocket} = instance.state;
 
                 if (!websocket) return;
 
@@ -86,7 +92,7 @@ export function initiateWebsocket({
                 return;
             }
 
-            CarbonReact.instance.setState((prevState: Readonly<any>) => ({
+            instance.setState((prevState: Readonly<any>) => ({
                 websocketEvents: prevState.websocketEvents.concat(message),
                 websocketData: prevState.websocketData.concat(parsedData), // JSON.parse no good - base64?
             }), () => {
@@ -115,7 +121,7 @@ export function initiateWebsocket({
 
                     const METHOD: string = parsedData?.REST?.METHOD;
 
-                    const REQUEST: { [key:string]: any } = parsedData?.REST?.REQUEST;
+                    const REQUEST: { [key: string]: any } = parsedData?.REST?.REQUEST;
 
                     const REQUEST_PRIMARY_KEY: {
                         [key: string]: string
@@ -133,7 +139,7 @@ export function initiateWebsocket({
 
                     const TABLE_NAME_SHORT = TABLE_NAME.substring(TABLE_PREFIX.length);
 
-                    const currentCache: [] = CarbonReact.instance.state[TABLE_NAME_SHORT]
+                    const currentCache: [] = instance.state[TABLE_NAME_SHORT]
 
                     // just because we have a websocket update, doesn't mean we need the update
                     // check to see if the primary key is in the current cache
@@ -186,9 +192,9 @@ export function initiateWebsocket({
 
                     })
 
-                    console.log('updatedElements', updatedElements)
-
-                    WsLiveUpdates[TABLE_NAME_SHORT][METHOD]({}, updatedElements)
+                    updatedElements.forEach((row: any) => {
+                        WsLiveUpdates[TABLE_NAME_SHORT][METHOD]({}, row)
+                    })
 
                 }
 
@@ -196,7 +202,7 @@ export function initiateWebsocket({
 
         };
 
-        window.addEventListener("focus", () => initiateWebsocket());
+        window.addEventListener("focus", () => initiateWebsocket(props));
 
         // websocket onclose event listener
         connection.addEventListener('close', event => {
@@ -215,7 +221,7 @@ export function initiateWebsocket({
 
                 console.log(`WebSocket reconnect will be attempted in ${retrySeconds} second(s).`)
 
-                connectInterval = setTimeout(() => initiateWebsocket(), retrySeconds);
+                connectInterval = setTimeout(() => initiateWebsocket(props), retrySeconds);
 
             }
 
