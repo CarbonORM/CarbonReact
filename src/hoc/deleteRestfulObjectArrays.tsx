@@ -1,25 +1,41 @@
-import CarbonReact, {iCarbonReactState} from "CarbonReact";
-import {tRestfulObjectArrayValues, tStatefulApiData} from "variables/C6";
-import {KeysMatching} from "./KeysMatching";
+import CarbonReact, { iCarbonReactState, tStatefulApiData } from "CarbonReact";
+import { KeysMatching } from "./KeysMatching";
 
-
-//ObjectType, UniqueIdType extends keyof ObjectType
-// @link https://www.typescriptlang.org/docs/handbook/2/mapped-types.html
-export default function deleteRestfulObjectArrays<
-    ObjectType = tRestfulObjectArrayValues,
-    S extends iCarbonReactState = iCarbonReactState,
+export interface iDeleteRestfulObjectArrays<
+    ObjectType extends {
+        [key: string]: any
+    } = {},
+    S extends { [key: string]: any; } = CarbonReact['state'],
     P = CarbonReact['props']
->(
-    instance: CarbonReact,
+> {
+    instance: CarbonReact<P, S>,
     dataOrCallback: ObjectType[] | ((state: Readonly<S>, props: Readonly<P>) => ObjectType[] | null),
     stateKey: KeysMatching<S, tStatefulApiData<ObjectType>>,
-    uniqueObjectId: (keyof ObjectType) | (keyof ObjectType)[],
+    uniqueObjectId: keyof ObjectType | (keyof ObjectType)[],
     callback?: () => void
-): void {
+}
 
-    const uniqueObjectIds = uniqueObjectId instanceof Array ? uniqueObjectId : [uniqueObjectId];
+export default function deleteRestfulObjectArrays<
+    ObjectType extends {
+        [key: string]: any
+    } = {},
+    S extends { [key: string]: any; } = CarbonReact['state'],
+    P = CarbonReact['props']
+>({
+      instance,
+      dataOrCallback,
+      stateKey,
+      uniqueObjectId,
+      callback
+  }: iDeleteRestfulObjectArrays<ObjectType, S, P>): void {
 
-    instance.setState((previousBootstrapState: Readonly<S>, props: Readonly<P>): {} | null => {
+    const uniqueObjectIds = Array.isArray(uniqueObjectId) ? uniqueObjectId : [uniqueObjectId];
+
+    instance.setState((
+        previousBootstrapState: Readonly<S & iCarbonReactState>,
+        props: Readonly<P>
+    ): Pick<S & iCarbonReactState, keyof S> | null => {
+
         let newOrReplacementData: ObjectType[] = [];
 
         if (Array.isArray(dataOrCallback)) {
@@ -32,8 +48,7 @@ export default function deleteRestfulObjectArrays<
 
             if (callbackReturn === null) {
 
-                // No updates needed (noop)
-                return null;
+                return null; // No updates needed (noop)
 
             }
 
@@ -55,6 +70,7 @@ export default function deleteRestfulObjectArrays<
 
         return {
             [stateKey]: updatedStateProperty
-        };
+        } as Pick<S & iCarbonReactState, keyof S>;
+
     }, callback);
 }

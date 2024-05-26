@@ -2,14 +2,20 @@ import {clearCache} from "@carbonorm/carbonnode";
 import changed from "hoc/changed";
 import {GlobalHistory} from "hoc/GlobalHistory";
 import hexToRgb from "hoc/hexToRgb";
-import {Component, Context, createContext, useContext, ReactElement, ReactNode} from 'react';
+import {Component, Context, createContext, ReactElement, ReactNode} from 'react';
 import {ToastContainer} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.min.css';
 import BackendThrowable from 'components/Errors/BackendThrowable';
 import Nest from 'components/Nest/Nest';
 import {initialRestfulObjectsState, iRestfulObjectArrayTypes} from "variables/C6";
 import CarbonWebSocket, {iCarbonWebSocketProps} from "./components/WebSocket/CarbonWebSocket";
+import updateRestfulObjectArrays, {iUpdateRestfulObjectArrays} from "./hoc/updateRestfulObjectArrays";
+import deleteRestfulObjectArrays, {iDeleteRestfulObjectArrays} from "./hoc/deleteRestfulObjectArrays";
 
+
+export type tStatefulApiData<T extends {
+    [key: string]: any
+} = {}> = T[] | undefined | null;
 
 // our central container, single page application
 export interface iCarbonReactState {
@@ -44,7 +50,7 @@ export function isJsonString(str: string) {
 
 const persistentStateMap = new Map<string, iCarbonReactState>();
 
-abstract class CarbonReact<P = {}, S = {}> extends Component<{
+abstract class CarbonReact<P = {}, S extends { [key: string]: any; } = {}> extends Component<{
     children?: ReactNode | ReactNode[],
     instanceId?: string,
     websocket?: Omit<iCarbonWebSocketProps, "instance"> | boolean
@@ -53,21 +59,29 @@ abstract class CarbonReact<P = {}, S = {}> extends Component<{
     context: Context<S & iCarbonReactState> = createContext(this.state);
 
     // Private static member
+    // we actually implement this in the constructor todo - test this
     protected static instance: CarbonReact;
 
-    protected static getState() {
-        return CarbonReact.instance.state;
-    }
+    protected target: typeof CarbonReact;
 
-    protected static useContext() {
-        return () => useContext(CarbonReact.instance.context);
-    }
+    protected updateRestfulObjectArrays = <ObjectType extends { [key: string]: any; } = {}>
+    (rest: Omit<iUpdateRestfulObjectArrays<ObjectType, S, P>, "instance">) => updateRestfulObjectArrays<ObjectType, S, P>({
+        instance: this,
+        ...rest
+    });
+
+    protected deleteRestfulObjectArrays = <ObjectType extends { [key: string]: any } = {}>
+    (rest: Omit<iDeleteRestfulObjectArrays<ObjectType, S, P>, "instance">) => deleteRestfulObjectArrays<ObjectType, S, P>({
+        instance: this,
+        ...rest
+    });
 
     static lastLocation = window.location.pathname;
 
     // @link https://github.com/welldone-software/why-did-you-render
     // noinspection JSUnusedGlobalSymbols
     static whyDidYouRender = true;
+
 
     protected constructor(props: {
         children?: ReactNode | ReactNode[];
@@ -77,9 +91,13 @@ abstract class CarbonReact<P = {}, S = {}> extends Component<{
 
         super(props);
 
+        this.target = new.target;
+
         console.log('CarbonORM TSX CONSTRUCTOR');
 
-        Object.assign(this, {
+        // this is the magic that allows each class that's extends this to have a static instance - a singleton pattern
+        // new.target is a meta-property introduced in ES6 that references the constructor that was directly invoked with the new keyword.
+        Object.assign(new.target, {
             instance: this
         })
 
@@ -161,7 +179,8 @@ abstract class CarbonReact<P = {}, S = {}> extends Component<{
         return <>
             <GlobalHistory/>
             {this.props.websocket &&
-                <CarbonWebSocket {...(true === this.props.websocket ? {} : this.props.websocket)} instance={CarbonReact.instance}/>}
+                <CarbonWebSocket {...(true === this.props.websocket ? {} : this.props.websocket)}
+                                 instance={CarbonReact.instance}/>}
             <Context value={this.state}>
                 {this.props.children}
             </Context>

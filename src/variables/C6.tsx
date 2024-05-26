@@ -3226,7 +3226,7 @@ export type RestTableInterfaces = iCarbons
     | iWp_Users;
 
 
-export type tStatefulApiData<T> = T[] | undefined | null;
+
 
 
 // this refers to the value types of the keys above, aka values in the state

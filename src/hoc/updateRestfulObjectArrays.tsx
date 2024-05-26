@@ -1,11 +1,26 @@
-import { tRestfulObjectArrayValues, tStatefulApiData } from "variables/C6";
-import CarbonReact, {iCarbonReactState} from "CarbonReact";
+import CarbonReact, { iCarbonReactState, tStatefulApiData } from "CarbonReact";
 import { KeysMatching } from "./KeysMatching";
+import { SubsetMatching } from "./SubsetMatching";
 
 export enum eUpdateInsertMethod {
     REPLACE,
     FIRST,
     LAST,
+}
+
+export interface iUpdateRestfulObjectArrays<
+    ObjectType extends {
+        [key: string]: any;
+    } = {},
+    S extends { [key: string]: any; } = CarbonReact['state'],
+    P =  CarbonReact['props']
+> {
+    instance: CarbonReact<P, S>;
+    dataOrCallback: ObjectType[] | ((state: Readonly<S>, props: Readonly<P>) => ObjectType[] | null);
+    stateKey: KeysMatching<S, tStatefulApiData<ObjectType>>;
+    uniqueObjectId: keyof ObjectType | (keyof ObjectType)[];
+    insertUpdateOrder: eUpdateInsertMethod;
+    callback?: () => void;
 }
 
 /**
@@ -17,82 +32,100 @@ export enum eUpdateInsertMethod {
  * @param insertUpdateOrder - The order in which new data should be inserted/updated.
  * @param callback - Optional callback function to run after state update.
  */
-export default function updateRestfulObjectArrays<ObjectType = tRestfulObjectArrayValues, S extends iCarbonReactState = iCarbonReactState, P = CarbonReact['props']>(
-    instance: CarbonReact,
-    dataOrCallback: ObjectType[] | ((state: Readonly<S>, props: Readonly<P>) => ObjectType[] | null),
-    stateKey: KeysMatching<S, tStatefulApiData<ObjectType>>,
-    uniqueObjectId: keyof ObjectType | (keyof ObjectType)[],
-    insertUpdateOrder: eUpdateInsertMethod = eUpdateInsertMethod.LAST,
-    callback?: () => void
-): void {
+export default function updateRestfulObjectArrays<
+    ObjectType extends {
+        [key: string]: any;
+    } = {},
+    S extends { [key: string]: any; } = CarbonReact['state'],
+    P  = CarbonReact['props']
+>({
+      instance,
+      dataOrCallback,
+      stateKey,
+      uniqueObjectId,
+      insertUpdateOrder = eUpdateInsertMethod.LAST,
+      callback,
+  }: iUpdateRestfulObjectArrays<ObjectType, S, P>): void {
 
     const uniqueObjectIds = Array.isArray(uniqueObjectId) ? uniqueObjectId : [uniqueObjectId];
 
-    (instance).setState((previousBootstrapState: Readonly<S>, props: Readonly<P>): {} => {
+    type ValidObject = SubsetMatching<S & iCarbonReactState, tStatefulApiData<ObjectType>>;
+
+    instance.setState((
+            previousBootstrapState: Readonly<S & iCarbonReactState>,
+            props: Readonly<P>
+        ): Pick<S & iCarbonReactState, keyof S> | null => {
 
         let newOrReplacementData: ObjectType[] | null = [];
 
-        if (Array.isArray(dataOrCallback)) {
+            if (Array.isArray(dataOrCallback)) {
 
-            newOrReplacementData = dataOrCallback;
+                newOrReplacementData = dataOrCallback;
 
-        } else if (typeof dataOrCallback === 'function') {
+            } else if (typeof dataOrCallback === "function") {
 
-            newOrReplacementData = dataOrCallback(previousBootstrapState, props);
+                newOrReplacementData = dataOrCallback(previousBootstrapState, props);
 
-        } else {
+            } else {
 
-            throw new Error('The dataOrCallback parameter must be an array or function');
+                throw new Error("The dataOrCallback parameter must be an array or function");
 
-        }
+            }
 
-        if (!newOrReplacementData) return {};
+            if (newOrReplacementData === null) {
+                return null
+            }
 
-        const findUniqueObjectIds = (item: ObjectType, value: ObjectType) => {
-            return uniqueObjectIds.every(id => item[id] === value[id]);
-        };
+            const findUniqueObjectIds = (item: ObjectType, value: ObjectType) => {
+                return uniqueObjectIds.every((id) => item[id] === value[id]);
+            };
 
-        const previousStateProperty = previousBootstrapState[stateKey] as ObjectType[];
+            const previousStateProperty = previousBootstrapState[stateKey] as tStatefulApiData<ObjectType> ?? [];
 
-        let updatedData: ObjectType[] = newOrReplacementData.map(value => {
-            const existingObject = previousStateProperty?.find(item => findUniqueObjectIds(item, value)) || {};
-            return { ...existingObject, ...value };
-        });
+            let updatedData: tStatefulApiData<ObjectType> = newOrReplacementData.map((value) => {
+                const existingObject = previousStateProperty?.find((item) =>
+                    findUniqueObjectIds(item, value)
+                ) || {};
+                return { ...existingObject, ...value };
+            });
 
-        const filterOutUpdated = (array: ObjectType[]) => {
-            return array.filter(item => !updatedData.some(value => findUniqueObjectIds(item, value)));
-        };
+            const filterOutUpdated = (array: tStatefulApiData<ObjectType>) => {
+                return array?.filter((item) => !updatedData.some((value) => findUniqueObjectIds(item, value))) ?? [];
+            };
 
-        switch (insertUpdateOrder) {
-            case eUpdateInsertMethod.LAST:
-                return {
-                    [stateKey]: [
+            let newState: Partial<ValidObject> = {};
+
+            switch (insertUpdateOrder) {
+                case eUpdateInsertMethod.LAST:
+                    newState[stateKey as keyof ValidObject] = [
                         ...filterOutUpdated(previousStateProperty),
                         ...updatedData,
-                    ]
-                };
-            case eUpdateInsertMethod.FIRST:
-                return {
-                    [stateKey]: [
+                    ] as any;
+                    break;
+                case eUpdateInsertMethod.FIRST:
+                    newState[stateKey as keyof ValidObject] = [
                         ...updatedData,
                         ...filterOutUpdated(previousStateProperty),
-                    ]
-                };
-            case eUpdateInsertMethod.REPLACE:
-                return {
-                    [stateKey]: [
-                        ...previousStateProperty.map(oldObject => {
-                            const index = updatedData.findIndex(item => findUniqueObjectIds(item, oldObject));
+                    ] as any;
+                    break;
+                case eUpdateInsertMethod.REPLACE:
+                    newState[stateKey as keyof ValidObject] = [
+                        ...(previousStateProperty?.map((oldObject) => {
+                            const index = updatedData.findIndex((item) => findUniqueObjectIds(item, oldObject));
                             if (index !== -1) {
                                 return updatedData.splice(index, 1)[0];
                             }
                             return oldObject;
-                        }),
-                        ...updatedData
-                    ]
-                };
-            default:
-                throw new Error('The insertUpdateOrder (eUpdateInsertMethod) was not implemented');
-        }
-    }, callback);
+                        }) ?? []),
+                        ...updatedData,
+                    ] as any;
+                    break;
+                default:
+                    throw new Error("The insertUpdateOrder (eUpdateInsertMethod) was not implemented");
+            }
+
+            return newState as Pick<S & iCarbonReactState, keyof S>;
+        },
+        callback
+    );
 }
