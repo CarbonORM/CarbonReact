@@ -4,7 +4,7 @@ import {useEffectOnce} from "../../api/hoc/useEffectOnce";
 import {tC6Tables, tC6RestApi} from "@carbonorm/carbonnode";
 
 
-export interface iCarbonWebSocketProps<P,S> {
+export interface iCarbonWebSocketProps<P,S extends iCarbonReactState> {
     url?: string,
     timeoutSeconds?: number,
     heartbeatSeconds?: number,
@@ -17,7 +17,7 @@ export interface iCarbonWebSocketProps<P,S> {
  * @function connect
  * This function establishes a connection with the websocket and also ensures constant reconnection if connection closes
  **/
-export function initiateWebsocket<P,S extends Partial<iCarbonReactState>>(props: iCarbonWebSocketProps<P,S>) {
+export function initiateWebsocket<P,S extends iCarbonReactState>(props: iCarbonWebSocketProps<P,S>) {
 
     let {
         instance,
@@ -286,7 +286,7 @@ export function initiateWebsocket<P,S extends Partial<iCarbonReactState>>(props:
 
 }
 
-export default function <P,S extends Partial<iCarbonReactState>>(props: iCarbonWebSocketProps<P,S>) {
+export default function <P,S extends iCarbonReactState>(props: iCarbonWebSocketProps<P,S>) {
 
     useEffectOnce(() => {
 
