@@ -8,7 +8,7 @@
   "types": "dist/index.d.ts",
   "type": "module",
   "dependencies": {
-    "@carbonorm/carbonnode": "^2.0.0",
+    "@carbonorm/carbonnode": "^2.0.7",
     "@fortawesome/fontawesome-svg-core": "^6.4.0",
     "@fortawesome/free-solid-svg-icons": "^6.4.0",
     "@fortawesome/react-fontawesome": "^0.2.0",

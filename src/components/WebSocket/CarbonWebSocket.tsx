@@ -1,32 +1,36 @@
-import CarbonReact, {iCarbonReactState, isJsonString} from "CarbonReact";
+import CarbonReact, {iCarbonReactState, isJsonString, tStatefulApiData} from "CarbonReact";
 import {addAlert} from "../Alert/Alert";
 import {useEffectOnce} from "../../api/hoc/useEffectOnce";
-import {tC6Tables, tC6RestApi} from "@carbonorm/carbonnode";
+import {iC6Object} from "@carbonorm/carbonnode";
 
 
-export interface iCarbonWebSocketProps<P,S extends iCarbonReactState> {
+export interface iCarbonWebSocketProps<P, S extends iCarbonReactState> {
     url?: string,
     timeoutSeconds?: number,
     heartbeatSeconds?: number,
-    instance: CarbonReact<P,S>,
-    TABLES?: tC6Tables,
-    WsLiveUpdates?: tC6RestApi,
+    instance: CarbonReact<P, S>,
+    C6?: iC6Object,
 }
 
 /**
  * @function connect
  * This function establishes a connection with the websocket and also ensures constant reconnection if connection closes
  **/
-export function initiateWebsocket<P,S extends iCarbonReactState>(props: iCarbonWebSocketProps<P,S>) {
+export function initiateWebsocket<P, S extends iCarbonReactState>(props: iCarbonWebSocketProps<P, S>) {
 
     let {
         instance,
-        TABLES = undefined,
-        WsLiveUpdates = undefined,
         url = 'ws' + (window.location.protocol === 'https:' ? 's' : '') + '://' + window.location.host + '/carbonorm/websocket',
         timeoutSeconds = 250,
-        heartbeatSeconds = 60
+        heartbeatSeconds = 60,
+        C6
     } = props;
+
+    const {
+        TABLES = undefined,
+        IMPORT = undefined,
+    } = C6 ?? {};
+
 
     const {websocket} = instance.state;
 
@@ -34,7 +38,7 @@ export function initiateWebsocket<P,S extends iCarbonReactState>(props: iCarbonW
     if (!("WebSocket" in window)) {
 
         // todo - store that this has been shown in the state
-        addAlert<P,S>({
+        addAlert<P, S>({
             title: 'Browser does not support websockets, live updates will fail. You may need to refresh the page to see the newest content.',
             text: 'Please use a modern browser.',
             icon: 'warning',
@@ -105,14 +109,6 @@ export function initiateWebsocket<P,S extends iCarbonReactState>(props: iCarbonW
 
                 }
 
-                if (undefined === WsLiveUpdates) {
-
-                    console.log('WebSocket updates without the WsLiveUpdates property passed will not automatically update the state.')
-
-                    return;
-
-                }
-
                 if (parsedData?.REST) {
 
                     const TABLE_NAME: string = parsedData?.REST?.TABLE_NAME;
@@ -139,7 +135,7 @@ export function initiateWebsocket<P,S extends iCarbonReactState>(props: iCarbonW
 
                     const TABLE_NAME_SHORT = TABLE_NAME.substring(TABLE_PREFIX.length);
 
-                    const currentCache: [] = instance.state[TABLE_NAME_SHORT]
+                    const currentCache: tStatefulApiData<{ [key: string]: any }> = instance.state[TABLE_NAME_SHORT]
 
                     // just because we have a websocket update, doesn't mean we need the update
                     // check to see if the primary key is in the current cache
@@ -155,7 +151,8 @@ export function initiateWebsocket<P,S extends iCarbonReactState>(props: iCarbonW
 
                     const primaryKeyKeys = Object.keys(REQUEST_PRIMARY_KEY)
 
-                    const elementsToUpdate = currentCache.filter((row: any) => {
+                    // todo - which direction should we filter
+                    const elementsToUpdate = currentCache?.filter((row: any) => {
 
                         for (const element of primaryKeyKeys) {
 
@@ -174,7 +171,7 @@ export function initiateWebsocket<P,S extends iCarbonReactState>(props: iCarbonW
 
                         return true
 
-                    })
+                    }) ?? []
 
                     console.log('elementsToUpdate', elementsToUpdate)
 
@@ -192,8 +189,30 @@ export function initiateWebsocket<P,S extends iCarbonReactState>(props: iCarbonW
 
                     })
 
-                    updatedElements.forEach((row: any) => {
-                        WsLiveUpdates[TABLE_NAME_SHORT][METHOD]({}, row)
+                    updatedElements.forEach(async (row: any) => {
+
+                        const RestRequests = await IMPORT?.(TABLE_NAME_SHORT)
+
+                        const {
+                            postState,
+                            deleteState,
+                            putState,
+                        } = RestRequests;
+
+                        switch (METHOD) {
+                            case 'POST':
+                                postState({}, row)
+                                break;
+                            case 'DELETE':
+                                deleteState({}, row)
+                                break;
+                            case 'PUT':
+                                putState({}, row)
+                                break;
+                            default:
+                                console.error('Method not supported', METHOD)
+                        }
+
                     })
 
                 }
@@ -286,7 +305,7 @@ export function initiateWebsocket<P,S extends iCarbonReactState>(props: iCarbonW
 
 }
 
-export default function <P,S extends iCarbonReactState>(props: iCarbonWebSocketProps<P,S>) {
+export default function <P, S extends iCarbonReactState>(props: iCarbonWebSocketProps<P, S>) {
 
     useEffectOnce(() => {
 
