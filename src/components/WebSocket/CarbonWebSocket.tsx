@@ -1,14 +1,14 @@
-import  CarbonReact, {isJsonString} from "CarbonReact";
+import CarbonReact, {iCarbonReactState, isJsonString} from "CarbonReact";
 import {addAlert} from "../Alert/Alert";
 import {useEffectOnce} from "../../api/hoc/useEffectOnce";
 import {tC6Tables, tC6RestApi} from "@carbonorm/carbonnode";
 
 
-export interface iCarbonWebSocketProps {
+export interface iCarbonWebSocketProps<P,S> {
     url?: string,
     timeoutSeconds?: number,
     heartbeatSeconds?: number,
-    instance: CarbonReact,
+    instance: CarbonReact<P,S>,
     TABLES?: tC6Tables,
     WsLiveUpdates?: tC6RestApi,
 }
@@ -17,7 +17,7 @@ export interface iCarbonWebSocketProps {
  * @function connect
  * This function establishes a connection with the websocket and also ensures constant reconnection if connection closes
  **/
-export function initiateWebsocket(props: iCarbonWebSocketProps) {
+export function initiateWebsocket<P,S extends Partial<iCarbonReactState>>(props: iCarbonWebSocketProps<P,S>) {
 
     let {
         instance,
@@ -34,7 +34,7 @@ export function initiateWebsocket(props: iCarbonWebSocketProps) {
     if (!("WebSocket" in window)) {
 
         // todo - store that this has been shown in the state
-        addAlert({
+        addAlert<P,S>({
             title: 'Browser does not support websockets, live updates will fail. You may need to refresh the page to see the newest content.',
             text: 'Please use a modern browser.',
             icon: 'warning',
@@ -286,7 +286,7 @@ export function initiateWebsocket(props: iCarbonWebSocketProps) {
 
 }
 
-export default function (props: iCarbonWebSocketProps) {
+export default function <P,S extends Partial<iCarbonReactState>>(props: iCarbonWebSocketProps<P,S>) {
 
     useEffectOnce(() => {
 

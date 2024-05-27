@@ -12,14 +12,14 @@ export interface iUpdateRestfulObjectArrays<
     ObjectType extends {
         [key: string]: any;
     } = {},
-    S extends { [key: string]: any; } = CarbonReact['state'],
+    S extends CarbonReact['state'] = CarbonReact['state'],
     P =  CarbonReact['props']
 > {
     instance: CarbonReact<P, S>;
     dataOrCallback: ObjectType[] | ((state: Readonly<S>, props: Readonly<P>) => ObjectType[] | null);
     stateKey: KeysMatching<S, tStatefulApiData<ObjectType>>;
     uniqueObjectId: keyof ObjectType | (keyof ObjectType)[];
-    insertUpdateOrder: eUpdateInsertMethod;
+    insertUpdateOrder?: eUpdateInsertMethod;
     callback?: () => void;
 }
 
@@ -36,7 +36,7 @@ export default function updateRestfulObjectArrays<
     ObjectType extends {
         [key: string]: any;
     } = {},
-    S extends { [key: string]: any; } = CarbonReact['state'],
+    S extends iCarbonReactState = CarbonReact['state'],
     P  = CarbonReact['props']
 >({
       instance,
@@ -52,7 +52,7 @@ export default function updateRestfulObjectArrays<
     type ValidObject = SubsetMatching<S & iCarbonReactState, tStatefulApiData<ObjectType>>;
 
     instance.setState((
-            previousBootstrapState: Readonly<S & iCarbonReactState>,
+            previousBootstrapState: Readonly<S>,
             props: Readonly<P>
         ): Pick<S & iCarbonReactState, keyof S> | null => {
 

@@ -29,6 +29,7 @@ export { default as CarbonWebSocket } from "./components/WebSocket/CarbonWebSock
 export * from "./components/WebSocket/CarbonWebSocket";
 export * from "./hoc/GlobalHistory";
 export * from "./hoc/KeysMatching";
+export * from "./hoc/SubsetMatching";
 export { default as addValidSQL } from "./hoc/addValidSQL";
 export * from "./hoc/addValidSQL";
 export { default as changed } from "./hoc/changed";

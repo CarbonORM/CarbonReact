@@ -5,7 +5,7 @@ export interface iDeleteRestfulObjectArrays<
     ObjectType extends {
         [key: string]: any
     } = {},
-    S extends { [key: string]: any; } = CarbonReact['state'],
+    S extends iCarbonReactState = CarbonReact['state'],
     P = CarbonReact['props']
 > {
     instance: CarbonReact<P, S>,
@@ -19,7 +19,7 @@ export default function deleteRestfulObjectArrays<
     ObjectType extends {
         [key: string]: any
     } = {},
-    S extends { [key: string]: any; } = CarbonReact['state'],
+    S extends iCarbonReactState = CarbonReact['state'],
     P = CarbonReact['props']
 >({
       instance,

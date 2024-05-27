@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import CarbonReact from "CarbonReact";
+import CarbonReact, {iCarbonReactState} from "CarbonReact";
 import {ReactNode} from "react";
 import Popup from "components/Popup/Popup";
 import getStyles from "hoc/getStyles";
@@ -18,10 +18,10 @@ export interface iAlertButtonOptions {
     color: "default" | "primary" | "secondary" | "inherit" | "danger" | "info" | "success" | "warning" | undefined,
 }
 
-export interface iAlert {
+export interface iAlert<P,S> {
     title: string,
     text: string,
-    instance: CarbonReact,
+    instance: CarbonReact<P,S>,
     component?: ReactNode,
     icon?: "warning" | "error" | "success" | "info" | "question" | null,
     buttons?: (iAlertButtonOptions)[] | undefined, //['No thanks!', 'Yes, Delete it'],
@@ -33,23 +33,21 @@ export interface iAlert {
     backendThrowable?: { [key: string]: any },
 }
 
-export function addAlert(props: iAlert) {
-
+export function addAlert<P, S extends Partial<iCarbonReactState>>(props: iAlert<P, S>) {
     props.instance.setState(previousState => ({
         alertsWaiting: previousState.alertsWaiting.length === 0
             ? [props]
             : [...previousState.alertsWaiting, props]
-    }))
-
+    }));
 }
 
-export default function Alert({
+export default function Alert<P,S extends Partial<iCarbonReactState>>({
                                   instance
-                              }: { instance:   CarbonReact }) {
+                              }: { instance:   CarbonReact<P,S> }) {
 
     const {alertsWaiting, backendThrowable} = instance.state
 
-    let alert: iAlert | undefined = undefined;
+    let alert: iAlert<P,S> | undefined = undefined;
 
     const alertWaiting = alertsWaiting.length + backendThrowable.length
 

@@ -1,3 +1,4 @@
+import { tStatefulApiData } from "CarbonReact";
 
 export interface stringMap {
     [key: string]: string;

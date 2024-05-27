@@ -48,21 +48,29 @@ export function isJsonString(str: string) {
     return true;
 }
 
-const persistentStateMap = new Map<string, iCarbonReactState>();
-
-abstract class CarbonReact<P = {}, S extends { [key: string]: any; } = {}> extends Component<{
+abstract class CarbonReact<P = {}, S extends iCarbonReactState = iCarbonReactState> extends Component<{
     children?: ReactNode | ReactNode[],
     instanceId?: string,
-    websocket?: Omit<iCarbonWebSocketProps, "instance"> | boolean
-} & P, S & iCarbonReactState> {
+    websocket?: Omit<iCarbonWebSocketProps<P,S>, "instance"> | false
+} & P, S> {
 
+    private static persistentStateMap = new Map<string, { [key: string]: any; }>();
+
+    // Context is for functional components to access the state of this class efficiently
     context: Context<S & iCarbonReactState> = createContext(this.state);
 
-    // Private static member
-    // we actually implement this in the constructor todo - test this
-    protected static instance: CarbonReact;
-
     protected target: typeof CarbonReact;
+
+    protected static _instance: typeof this;
+
+    static get instance()  {
+        return this;
+    }
+
+    static set instance(instance: typeof this) {
+        this._instance = instance;
+    }
+
 
     protected updateRestfulObjectArrays = <ObjectType extends { [key: string]: any; } = {}>
     (rest: Omit<iUpdateRestfulObjectArrays<ObjectType, S, P>, "instance">) => updateRestfulObjectArrays<ObjectType, S, P>({
@@ -86,7 +94,7 @@ abstract class CarbonReact<P = {}, S extends { [key: string]: any; } = {}> exten
     protected constructor(props: {
         children?: ReactNode | ReactNode[];
         shouldStatePersist?: boolean | undefined;
-        websocket?: boolean | iCarbonWebSocketProps | undefined;
+        websocket?: boolean | iCarbonWebSocketProps<P,S> | undefined;
     } & P) {
 
         super(props);
@@ -98,12 +106,12 @@ abstract class CarbonReact<P = {}, S extends { [key: string]: any; } = {}> exten
         // this is the magic that allows each class that's extends this to have a static instance - a singleton pattern
         // new.target is a meta-property introduced in ES6 that references the constructor that was directly invoked with the new keyword.
         Object.assign(new.target, {
-            instance: this
+            _instance: this
         })
 
-        if (this.props.instanceId && persistentStateMap.has(this.props.instanceId)) {
+        if (this.props.instanceId && CarbonReact.persistentStateMap.has(this.props.instanceId)) {
 
-            this.state = persistentStateMap.get(this.props.instanceId) as S & iCarbonReactState;
+            this.state = CarbonReact.persistentStateMap.get(this.props.instanceId) as S & iCarbonReactState;
 
         } else {
 
@@ -128,12 +136,12 @@ abstract class CarbonReact<P = {}, S extends { [key: string]: any; } = {}> exten
 
 
     shouldComponentUpdate(
-        nextProps: Readonly<any>,
-        nextState: Readonly<iCarbonReactState>,
+        nextProps: Readonly<P>,
+        nextState: Readonly<S>,
         _nextContext: any): boolean {
 
         if (this.props.instanceId) {
-            persistentStateMap.set(this.props.instanceId, nextState);
+            CarbonReact.persistentStateMap.set(this.props.instanceId, nextState);
         }
 
         changed(this.constructor.name + ' (C6Api)', 'props', this.props, nextProps);
@@ -144,7 +152,7 @@ abstract class CarbonReact<P = {}, S extends { [key: string]: any; } = {}> exten
 
     }
 
-    componentDidUpdate(_prevProps: Readonly<any>, _prevState: Readonly<iCarbonReactState>, _snapshot?: any) {
+    componentDidUpdate(_prevProps: Readonly<P>, _prevState: Readonly<S>, _snapshot?: any) {
         if (CarbonReact.lastLocation !== location.pathname) {
             CarbonReact.lastLocation = location.pathname;
             const websocket = this.state.websocket;
@@ -169,7 +177,7 @@ abstract class CarbonReact<P = {}, S extends { [key: string]: any; } = {}> exten
 
             return <>
                 {nest}
-                <BackendThrowable instance={CarbonReact.instance}/>
+                <BackendThrowable instance={this}/>
             </>;
 
         }
@@ -179,8 +187,8 @@ abstract class CarbonReact<P = {}, S extends { [key: string]: any; } = {}> exten
         return <>
             <GlobalHistory/>
             {this.props.websocket &&
-                <CarbonWebSocket {...(true === this.props.websocket ? {} : this.props.websocket)}
-                                 instance={CarbonReact.instance}/>}
+                <CarbonWebSocket<P,S> {...(false !== this.props.websocket ? this.props.websocket : {})}
+                                 instance={this}/>}
             <Context value={this.state}>
                 {this.props.children}
             </Context>
