@@ -1,21 +1,18 @@
-import { clearCache } from "@carbonorm/carbonnode";
 import changed from "hoc/changed";
-import { GlobalHistory } from "hoc/GlobalHistory";
+import {GlobalHistory} from "hoc/GlobalHistory";
 import hexToRgb from "hoc/hexToRgb";
-import { Component, Context, createContext, ReactElement, ReactNode } from 'react';
-import { ToastContainer } from 'react-toastify';
+import {Component, Context, createContext, ReactElement, ReactNode} from 'react';
+import {ToastContainer} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.min.css';
 import BackendThrowable from 'components/Errors/BackendThrowable';
 import Nest from 'components/Nest/Nest';
-import { initialRestfulObjectsState, iRestfulObjectArrayTypes } from "variables/C6";
-import CarbonWebSocket, { iCarbonWebSocketProps } from "./components/WebSocket/CarbonWebSocket";
-import updateRestfulObjectArrays, { iUpdateRestfulObjectArrays } from "./hoc/updateRestfulObjectArrays";
-import deleteRestfulObjectArrays, { iDeleteRestfulObjectArrays } from "./hoc/deleteRestfulObjectArrays";
+import {initialRestfulObjectsState, iRestfulObjectArrayTypes} from "variables/C6";
+import CarbonWebSocket, {iCarbonWebSocketProps} from "./components/WebSocket/CarbonWebSocket";
+import updateRestfulObjectArrays, {iUpdateRestfulObjectArrays} from "./hoc/updateRestfulObjectArrays";
+import deleteRestfulObjectArrays, {iDeleteRestfulObjectArrays} from "./hoc/deleteRestfulObjectArrays";
+import {BrowserRouter, HashRouter, MemoryRouter} from "react-router-dom";
 
-
-export type tStatefulApiData<T extends {
-    [key: string]: any
-} = {}> = T[] | undefined | null;
+export type tStatefulApiData<T extends { [key: string]: any } = {}> = T[] | undefined | null;
 
 // our central container, single page application
 export interface iCarbonReactState {
@@ -48,26 +45,50 @@ export function isJsonString(str: string) {
     return true;
 }
 
+export enum eRouterType {
+    BrowserRouter,
+    HashRouter,
+    MemoryRouter,
+}
+
 abstract class CarbonReact<P = {}, S extends iCarbonReactState = iCarbonReactState> extends Component<{
     children?: ReactNode | ReactNode[],
     instanceId?: string,
+    persistentState?: boolean,
+    routerType?: eRouterType,
     websocket?: Omit<iCarbonWebSocketProps<P, S>, "instance"> | false
 } & P, S> {
 
-    private static persistentStateMap = new Map<string, { [key: string]: any; }>();
-    private static activeInstances = new Map<string, CarbonReact<any, any>>();
+    private static allInstances = new Map<string, CarbonReact<any, any>>();
 
     context: Context<S & iCarbonReactState> = createContext(this.state);
     protected target: typeof CarbonReact;
 
     protected static _instance: ThisType<CarbonReact<any, any>>;
 
-    static getInstance<T extends CarbonReact<any, any>>(): T {
+    static getInstance<T extends CarbonReact<any, any>>(instanceId?: string): T {
+
+        const identifier = this.generateIdentifier(instanceId);
+
+        if (undefined !== instanceId) {
+            if (CarbonReact.allInstances.has(identifier)) {
+                return CarbonReact.allInstances.get(identifier) as T;
+            }
+            throw new Error(`No instance has been instantiated yet for class (${this.name}) with instanceId (${instanceId})`);
+        }
+
+        if (!this._instance) {
+            throw new Error(`No instance has been instantiated yet for class (${this.name})`);
+        }
+
         return this._instance as T;
+
     }
+
     static get instance() {
         return this.getInstance();
     }
+
     static set instance(instance: CarbonReact<any, any>) {
         this._instance = instance;
     }
@@ -90,48 +111,44 @@ abstract class CarbonReact<P = {}, S extends iCarbonReactState = iCarbonReactSta
 
     protected constructor(props: {
         children?: ReactNode | ReactNode[];
-        shouldStatePersist?: boolean | undefined;
         websocket?: boolean | iCarbonWebSocketProps<P, S> | undefined;
         instanceId?: string; // Optional instanceId from props
+        persistentState?: boolean; // Optional persistentState from props
     } & P) {
         super(props);
 
-        const target = new.target as typeof CarbonReact;
-        const identifier = props.instanceId || target.name;
+        const identifier = this.generateIdentifier();
 
-        if (CarbonReact.activeInstances.has(identifier)) {
-            throw new Error(`Instance with ID ${identifier} already exists! CarbonReact extended classes can only be referenced once in DOM with the same identifier.`);
+        if (props.persistentState && CarbonReact.allInstances.has(identifier)) {
+            // Reuse the state from the existing instance
+            this.state = CarbonReact.allInstances.get(identifier)!.state as S & iCarbonReactState;
+        } else {
+            this.state = initialCarbonReactState as unknown as S & iCarbonReactState;
+            CarbonReact.allInstances.set(identifier, this);
         }
 
-        CarbonReact.activeInstances.set(identifier, this);
-
-        this.target = target;
+        this.target = new.target;
         console.log('CarbonORM TSX CONSTRUCTOR');
 
-        Object.assign(target, {
+        Object.assign(this.target, {
             _instance: this
         });
+    }
 
-        if (CarbonReact.persistentStateMap.has(identifier)) {
-            this.state = CarbonReact.persistentStateMap.get(identifier) as S & iCarbonReactState;
-        } else {
-            clearCache({
-                ignoreWarning: true
-            });
-            this.state = initialCarbonReactState as unknown as S & iCarbonReactState;
-        }
+    private static generateIdentifier(instanceId?: string): string {
+        const className = this.name;
+        return instanceId ? `${className}-${instanceId}` : className;
+    }
 
-        // Save the initial state to the persistent state map with the identifier
-        CarbonReact.persistentStateMap.set(identifier, this.state);
+    private generateIdentifier(): string {
+        const className = (this.constructor as typeof CarbonReact).name;
+        return this.props.instanceId ? `${className}-${this.props.instanceId}` : className;
     }
 
     shouldComponentUpdate(
         nextProps: Readonly<P>,
         nextState: Readonly<S>,
         _nextContext: any): boolean {
-
-        const identifier = this.props.instanceId || (this.constructor as typeof CarbonReact).name;
-        CarbonReact.persistentStateMap.set(identifier, nextState);
 
         changed(this.constructor.name + ' (C6Api)', 'props', this.props, nextProps);
         changed(this.constructor.name + ' (C6Api)', 'state', this.state, nextState);
@@ -150,6 +167,19 @@ abstract class CarbonReact<P = {}, S extends iCarbonReactState = iCarbonReactSta
         }
     }
 
+    reactRouterContext(children: ReactElement) {
+        switch (this.props.routerType ?? eRouterType.BrowserRouter) {
+            case eRouterType.BrowserRouter:
+                return <BrowserRouter>{children}</BrowserRouter>
+            case eRouterType.MemoryRouter:
+                return <MemoryRouter initialEntries={['/']}>{children}</MemoryRouter>
+            case eRouterType.HashRouter:
+                return <HashRouter>{children}</HashRouter>
+            default:
+                throw new Error('Invalid routerType');
+        }
+    }
+
     render(): ReactElement {
         console.log('CarbonORM TSX RENDER');
 
@@ -157,32 +187,28 @@ abstract class CarbonReact<P = {}, S extends iCarbonReactState = iCarbonReactSta
 
         console.log('%c color (' + colorHex + ')', 'color: ' + colorHex);
 
-        const nest = <Nest position={'fixed'} backgroundColor={''} color={hexToRgb(colorHex)} count={100} />;
+        const nest = <Nest position={'fixed'} backgroundColor={''} color={hexToRgb(colorHex)} count={100}/>;
 
         if (this.state.backendThrowable.length > 0) {
             return <>
                 {nest}
-                <BackendThrowable instance={this} />
+                <BackendThrowable instance={this}/>
             </>;
         }
 
+        this.context = createContext(this.state)
         const Context = this.context.Provider;
 
-        return <>
-            <GlobalHistory />
+        return this.reactRouterContext(<>
+            <GlobalHistory/>
             {this.props.websocket &&
                 <CarbonWebSocket<P, S> {...(false !== this.props.websocket ? this.props.websocket : {})}
-                                       instance={this} />}
+                                       instance={this}/>}
             <Context value={this.state}>
                 {this.props.children}
             </Context>
-            <ToastContainer />
-        </>;
-    }
-
-    componentWillUnmount() {
-        const identifier = this.props.instanceId || (this.constructor as typeof CarbonReact).name;
-        CarbonReact.activeInstances.delete(identifier);
+            <ToastContainer/>
+        </>);
     }
 }
 
