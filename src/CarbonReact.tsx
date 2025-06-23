@@ -3,7 +3,7 @@ import {GlobalHistory} from "hoc/GlobalHistory";
 import hexToRgb from "hoc/hexToRgb";
 import {Component, Context, createContext, ReactElement, ReactNode} from 'react';
 import {ToastContainer} from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.min.css';
+import 'react-toastify/dist/ReactToastify.css';
 import BackendThrowable from 'components/Errors/BackendThrowable';
 import Nest from 'components/Nest/Nest';
 import {initialRestfulObjectsState, iRestfulObjectArrayTypes} from "variables/C6";
