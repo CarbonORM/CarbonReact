@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import OutsideClickHandler from 'react-outside-click-handler';
+import OutsideClickHandler from '../OutsideClickHandler/OutsideClickHandler';
 import getStyles from "hoc/getStyles";
 import {PropsWithChildren, ReactElement} from "react";
 

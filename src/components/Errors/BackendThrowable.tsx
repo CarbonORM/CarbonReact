@@ -1,5 +1,5 @@
 import styles from './style.module.scss';
-import OutsideClickHandler from 'react-outside-click-handler';
+import OutsideClickHandler from '../OutsideClickHandler/OutsideClickHandler';
 import CarbonReact, {iCarbonReactState} from "../../CarbonReact";
 import {ReactElement} from "react";
 
