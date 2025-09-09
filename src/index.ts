@@ -23,6 +23,8 @@ export { default as Loading } from "./components/Loading/Loading";
 export * from "./components/Loading/Loading";
 export { default as Nest } from "./components/Nest/Nest";
 export * from "./components/Nest/Nest";
+export { default as OutsideClickHandler } from "./components/OutsideClickHandler/OutsideClickHandler";
+export * from "./components/OutsideClickHandler/OutsideClickHandler";
 export { default as Popup } from "./components/Popup/Popup";
 export * from "./components/Popup/Popup";
 export { default as CarbonWebSocket } from "./components/WebSocket/CarbonWebSocket";
