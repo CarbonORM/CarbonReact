@@ -1,4 +1,5 @@
-const assert = require('assert');
+import assert from "assert";
+
 const howLongTillLunch = require('..');
 
 function MockDate () {
