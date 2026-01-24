@@ -1,7 +1,11 @@
 {
   "name": "@carbonorm/carbonreact",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/CarbonORM/CarbonReact"
+  },
   "license": "MIT",
-  "version": "5.0.2",
+  "version": "5.0.3",
   "browser": "dist/index.umd.js",
   "type": "module",
   "main": "./dist/index.cjs",
