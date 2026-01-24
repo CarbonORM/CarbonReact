@@ -1,11 +1,9 @@
 import changed from "utils/changed";
 import {GlobalHistory} from "routing/GlobalHistory";
-import hexToRgb from "utils/hexToRgb";
 import {Component, Context, createContext, ReactElement, ReactNode} from 'react';
 import {ToastContainer} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import BackendThrowable from 'components/Errors/BackendThrowable';
-import Nest from 'components/Nest/Nest';
 import {initialRestfulObjectsState, iRestfulObjectArrayTypes} from "schema/C6";
 import CarbonWebSocket, {iCarbonWebSocketProps} from "components/WebSocket/CarbonWebSocket";
 import updateRestfulObjectArrays, {iUpdateRestfulObjectArrays} from "state/updateRestfulObjectArrays";
@@ -186,20 +184,10 @@ abstract class CarbonReact<P = {}, S extends iCarbonReactState = iCarbonReactSta
     render(): ReactElement {
         console.log('CarbonORM TSX RENDER');
 
-        const colorHex = '#' + Math.random().toString(16).slice(-6);
         const canUseDomNow = canUseDom();
 
-        console.log('%c color (' + colorHex + ')', 'color: ' + colorHex);
-
-        const nest = canUseDomNow
-            ? <Nest position={'fixed'} backgroundColor={''} color={hexToRgb(colorHex)} count={100}/>
-            : null;
-
         if (this.state.backendThrowable.length > 0) {
-            return <>
-                {nest}
-                <BackendThrowable instance={this}/>
-            </>;
+            return <BackendThrowable instance={this}/>;
         }
 
         this.context = createContext(this.state)
