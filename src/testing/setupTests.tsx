@@ -1,17 +1,34 @@
 import {axiosInstance, checkAllRequestsComplete, isVerbose} from "@carbonorm/carbonnode";
-import {createRequire} from "module";
 import ValidSQL, {validSQL} from "./validSQL";
 
-const require = createRequire(import.meta.url);
+const nodeModulePromise = typeof process !== "undefined" && process.versions?.node
+    ? Promise.all([
+        import("node:fs"),
+        import("node:util"),
+        import("@testing-library/react"),
+    ])
+    : null;
+
+const getNodeModules = async () => {
+    if (!nodeModulePromise) {
+        throw new Error("setupTests requires a Node runtime.");
+    }
+
+    const [fsModule, utilModule, testingLib] = await nodeModulePromise;
+    return {
+        fs: fsModule,
+        inspect: utilModule.inspect,
+        waitFor: testingLib.waitFor,
+    };
+};
 
 export default function ({sqlDirectory = './logs/rest/', logsDirectory = './logs/tests/'}: {
     sqlDirectory?: string,
     logsDirectory?: string
 } = {}) {
-
-    const fs = require("fs");
-    const {inspect} = require("util");
-    const {waitFor} = require("@testing-library/react");
+    if (!nodeModulePromise) {
+        throw new Error("setupTests requires a Node runtime.");
+    }
 
     const originalWindowLocation = window.location.href
 
@@ -39,10 +56,14 @@ export default function ({sqlDirectory = './logs/rest/', logsDirectory = './logs
         })
 
     // @link https://stackoverflow.com/questions/13542667/create-directory-when-writing-to-file-in-node-js
-    const asyncFileLogging = async (...args) => fs.writeFileSync(
-        logsFile(),
-        '\n' + inspect(args.length === 1 ? args.pop() : args, false, 10, true),
-        {flag: "a+"});
+    const asyncFileLogging = async (...args) => {
+        const {fs, inspect} = await getNodeModules();
+        fs.writeFileSync(
+            logsFile(),
+            '\n' + inspect(args.length === 1 ? args.pop() : args, false, 10, true),
+            {flag: "a+"}
+        );
+    };
 
     global.console = {
         ...console,
@@ -63,6 +84,8 @@ export default function ({sqlDirectory = './logs/rest/', logsDirectory = './logs
     };
 
     afterEach(async () => {
+
+        const {waitFor, fs} = await getNodeModules();
 
         await waitFor(async () => {
 
