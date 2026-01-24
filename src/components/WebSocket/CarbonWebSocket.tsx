@@ -1,7 +1,7 @@
 import CarbonReact, {iCarbonReactState, isJsonString, tStatefulApiData} from "CarbonReact";
 import {addAlert} from "../Alert/Alert";
 import {useEffectOnce} from "../../api/hoc/useEffectOnce";
-import {iC6Object} from "@carbonorm/carbonnode";
+import {iC6Object, isVerbose} from "@carbonorm/carbonnode";
 
 
 export interface iCarbonWebSocketProps<P, S extends iCarbonReactState> {
@@ -28,9 +28,9 @@ export function initiateWebsocket<P, S extends iCarbonReactState>(props: iCarbon
 
     const {
         TABLES = undefined,
-        IMPORT = undefined,
     } = C6 ?? {};
 
+    const verbose = isVerbose();
 
     const {websocket} = instance.state;
 
@@ -46,6 +46,7 @@ export function initiateWebsocket<P, S extends iCarbonReactState>(props: iCarbon
         })
 
     }
+
 
     if (false === (undefined === websocket || null === websocket)) {
 
@@ -67,21 +68,14 @@ export function initiateWebsocket<P, S extends iCarbonReactState>(props: iCarbon
         connection.onopen = () => {
 
             console.log('WebSocket Client Connected To :: ' + url);
-
             clearTimeout(connectInterval); // clear Interval on open of websocket connection
 
             function heartbeat() {
-
                 const {websocket} = instance.state;
-
                 if (!websocket) return;
-
                 if (websocket.readyState !== 1) return;
-
                 websocket.send("ping");
-
                 setTimeout(heartbeat, heartbeatSeconds * 1000);
-
             }
 
             heartbeat();
@@ -103,7 +97,9 @@ export function initiateWebsocket<P, S extends iCarbonReactState>(props: iCarbon
 
                 if (undefined === TABLES) {
 
-                    console.log('WebSocket updates without the TABLES property passed will not automatically update the state.')
+                    if (verbose) {
+                        console.log('WebSocket updates without the TABLES property passed will not automatically update the state.');
+                    }
 
                     return;
 
@@ -113,7 +109,7 @@ export function initiateWebsocket<P, S extends iCarbonReactState>(props: iCarbon
 
                     const TABLE_NAME: string = parsedData?.REST?.TABLE_NAME;
 
-                    const TABLE_PREFIX: string = parsedData?.REST?.TABLE_PREFIX;
+                    const TABLE_PREFIX: string = parsedData?.REST?.TABLE_PREFIX ?? '';
 
                     const METHOD: string = parsedData?.REST?.METHOD;
 
@@ -125,15 +121,21 @@ export function initiateWebsocket<P, S extends iCarbonReactState>(props: iCarbon
 
                     if (null === REQUEST_PRIMARY_KEY) {
 
-                        console.log('WebSocket updates without a primary key are not yet supported.')
+                        if (verbose) {
+                            console.log('WebSocket updates without a primary key are not yet supported.');
+                        }
 
                         return;
 
                     }
 
-                    console.log('todo - going to impl REST', TABLE_NAME, METHOD, REQUEST_PRIMARY_KEY, parsedData?.REST)
+                    if (verbose) {
+                        console.log('todo - going to impl REST', TABLE_NAME, METHOD, REQUEST_PRIMARY_KEY, parsedData?.REST);
+                    }
 
-                    const TABLE_NAME_SHORT = TABLE_NAME.substring(TABLE_PREFIX.length);
+                    const TABLE_NAME_SHORT = TABLE_NAME.startsWith(TABLE_PREFIX)
+                        ? TABLE_NAME.substring(TABLE_PREFIX.length)
+                        : TABLE_NAME;
 
                     const currentCache: tStatefulApiData<{ [key: string]: any }> = instance.state[TABLE_NAME_SHORT]
 
@@ -143,77 +145,81 @@ export function initiateWebsocket<P, S extends iCarbonReactState>(props: iCarbon
 
                     if (null === c6Table) {
 
-                        console.error('WebSocket update could not find (' + TABLE_NAME_SHORT + ') in the TABLES property passed.', TABLES)
+                        if (verbose) {
+                            console.error('WebSocket update could not find (' + TABLE_NAME_SHORT + ') in the TABLES property passed.', TABLES);
+                        }
 
                         return;
 
                     }
 
-                    const primaryKeyKeys = Object.keys(REQUEST_PRIMARY_KEY)
+                    const columns = c6Table.COLUMNS as Record<string, string>;
+                    const validColumns = new Set(Object.values(columns));
+
+                    const normalizeRecord = (record: { [key: string]: any } | null | undefined) => {
+                        const normalized: { [key: string]: any } = {};
+                        for (const [key, value] of Object.entries(record ?? {})) {
+                            const shortKey = columns[key] ?? (key.includes('.') ? key.split('.').pop()! : key);
+                            if (validColumns.has(shortKey)) {
+                                normalized[shortKey] = value;
+                            }
+                        }
+                        return normalized;
+                    };
+
+                    const normalizedPrimaryKey = normalizeRecord(REQUEST_PRIMARY_KEY);
+                    const primaryKeyKeys = Object.keys(normalizedPrimaryKey);
+
+                    if (primaryKeyKeys.length === 0) {
+                        if (verbose) {
+                            console.error('WebSocket update could not map primary keys for', TABLE_NAME_SHORT, REQUEST_PRIMARY_KEY);
+                        }
+                        return;
+                    }
 
                     // todo - which direction should we filter
-                    const elementsToUpdate = currentCache?.filter((row: any) => {
+                    const elementsToUpdate = currentCache?.filter((row: any) =>
+                        primaryKeyKeys.every((key) => normalizedPrimaryKey[key] === row[key])
+                    ) ?? []
 
-                        for (const element of primaryKeyKeys) {
-
-                            // remove the table name from the column name
-                            const column = element.split('.')[1]
-
-                            console.log('column', column, REQUEST_PRIMARY_KEY[element], row[column])
-
-                            if (REQUEST_PRIMARY_KEY[element] !== row[column]) {
-
-                                return false
-
-                            }
-
-                        }
-
-                        return true
-
-                    }) ?? []
-
-                    console.log('elementsToUpdate', elementsToUpdate)
+                    if (verbose) {
+                        console.log('elementsToUpdate', elementsToUpdate);
+                    }
 
                     if (elementsToUpdate.length === 0) {
-                        console.error('Could not find any elements to update in the cache.', elementsToUpdate, primaryKeyKeys, REQUEST_PRIMARY_KEY, currentCache)
+                        if (verbose) {
+                            console.error('Could not find any elements to update in the cache.', elementsToUpdate, primaryKeyKeys, REQUEST_PRIMARY_KEY, currentCache);
+                        }
                         return;
                     }
 
-                    const updatedElements = elementsToUpdate.map((row: any) => {
+                    const normalizedRequest = normalizeRecord(REQUEST);
+                    const updatedElements = elementsToUpdate.map((row: any) => ({
+                        ...row,
+                        ...normalizedRequest,
+                    }));
 
-                        return {
-                            ...row,
-                            ...REQUEST
-                        }
-
-                    })
-
-                    updatedElements.forEach(async (row: any) => {
-
-                        const RestRequests = await IMPORT?.(TABLE_NAME_SHORT)
-
-                        const {
-                            postState,
-                            deleteState,
-                            putState,
-                        } = RestRequests;
-
-                        switch (METHOD) {
-                            case 'POST':
-                                postState({}, row)
-                                break;
-                            case 'DELETE':
-                                deleteState({}, row)
-                                break;
-                            case 'PUT':
-                                putState({}, row)
-                                break;
-                            default:
-                                console.error('Method not supported', METHOD)
-                        }
-
-                    })
+                    switch (METHOD) {
+                        case 'POST':
+                        case 'PUT':
+                            instance.updateRestfulObjectArrays({
+                                dataOrCallback: updatedElements,
+                                stateKey: TABLE_NAME_SHORT as any,
+                                uniqueObjectId: c6Table.PRIMARY_SHORT as any,
+                            });
+                            break;
+                        case 'DELETE':
+                            instance.deleteRestfulObjectArrays({
+                                dataOrCallback: elementsToUpdate,
+                                stateKey: TABLE_NAME_SHORT as any,
+                                uniqueObjectId: c6Table.PRIMARY_SHORT as any,
+                            });
+                            break;
+                        default:
+                            if (verbose) {
+                                console.error('Method not supported', METHOD);
+                            }
+                    }
 
                 }
 

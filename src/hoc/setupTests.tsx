@@ -10,9 +10,10 @@ export default function ({sqlDirectory = './logs/rest/', logsDirectory = './logs
     const fs = require("fs");
     const {inspect} = require("util");
 
-    const originalWindowLocation = window.location
+    const originalWindowLocation = window.location.href
 
     const consoleOriginal = console;
+    const isVerboseEnabled = isVerbose();
 
     const testName = () => expect.getState().currentTestName?.replaceAll(" ", "_").toLowerCase()
 
@@ -43,19 +44,19 @@ export default function ({sqlDirectory = './logs/rest/', logsDirectory = './logs
     global.console = {
         ...console,
         // use jest.fn() to silence, comment out to leave as it is
-        debug: (...args) => (isVerbose && consoleOriginal.debug(...args), asyncFileLogging('debug', ...args)),
-        error: (...args) => (isVerbose && consoleOriginal.error(...args), asyncFileLogging('error', ...args)),
-        group: (...args) => (isVerbose && consoleOriginal.group(...args), asyncFileLogging('group', ...args)),
-        groupCollapsed: (...args) => (isVerbose && consoleOriginal.groupCollapsed(args), asyncFileLogging('groupCollapsed', ...args)),
-        groupEnd: () => (isVerbose && consoleOriginal.groupEnd(), asyncFileLogging('groupEnd')),
-        info: (...args) => (isVerbose && consoleOriginal.info(...args), asyncFileLogging('info', ...args)),
-        log: (...args) => (isVerbose && consoleOriginal.log(...args), asyncFileLogging('log', ...args)),
-        table: (...args) => (isVerbose && consoleOriginal.table(...args), asyncFileLogging('table', ...args)),
-        trace: (...args) => (isVerbose && consoleOriginal.trace(...args), asyncFileLogging((() => {
+        debug: (...args) => (isVerboseEnabled && consoleOriginal.debug(...args), asyncFileLogging('debug', ...args)),
+        error: (...args) => (isVerboseEnabled && consoleOriginal.error(...args), asyncFileLogging('error', ...args)),
+        group: (...args) => (isVerboseEnabled && consoleOriginal.group(...args), asyncFileLogging('group', ...args)),
+        groupCollapsed: (...args) => (isVerboseEnabled && consoleOriginal.groupCollapsed(...args), asyncFileLogging('groupCollapsed', ...args)),
+        groupEnd: () => (isVerboseEnabled && consoleOriginal.groupEnd(), asyncFileLogging('groupEnd')),
+        info: (...args) => (isVerboseEnabled && consoleOriginal.info(...args), asyncFileLogging('info', ...args)),
+        log: (...args) => (isVerboseEnabled && consoleOriginal.log(...args), asyncFileLogging('log', ...args)),
+        table: (...args) => (isVerboseEnabled && consoleOriginal.table(...args), asyncFileLogging('table', ...args)),
+        trace: (...args) => (isVerboseEnabled && consoleOriginal.trace(...args), asyncFileLogging((() => {
             const err = new Error();
             return err.stack;
         })())),
-        warn: (...args) => (isVerbose && consoleOriginal.warn(...args), asyncFileLogging('warn', ...args)),
+        warn: (...args) => (isVerboseEnabled && consoleOriginal.warn(...args), asyncFileLogging('warn', ...args)),
     };
 
     afterEach(async () => {
@@ -72,7 +73,7 @@ export default function ({sqlDirectory = './logs/rest/', logsDirectory = './logs
 
         // restore `window.location` to the original `jsdom`
         // `Location` object
-        window.location = originalWindowLocation
+        window.location.href = originalWindowLocation
 
         fs.writeFileSync(validSqlFile(), jsonSQL);
 
