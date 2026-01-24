@@ -1,54 +1,137 @@
 import assert from "assert";
 
-const howLongTillLunch = require('..');
+const ensureBrowserGlobals = () => {
+	if (!globalThis.window) {
+		const stubHead = {
+			firstChild: null,
+			appendChild() {},
+			insertBefore() {}
+		};
 
-function MockDate () {
-	this.date = 0;
-	this.hours = 0;
-	this.minutes = 0;
-	this.seconds = 0;
-	this.milliseconds = 0;
+		const stubDocument = {
+			documentElement: {},
+			head: stubHead,
+			body: { appendChild() {}, removeChild() {} },
+			createElement() {
+				return {
+					style: {},
+					styleSheet: null,
+					appendChild() {},
+					setAttribute() {}
+				};
+			},
+			createTextNode() { return {}; },
+			addEventListener() {},
+			removeEventListener() {},
+			getElementById() { return null; },
+			getElementsByTagName() { return [stubHead]; },
+			cookie: ""
+		};
+
+		globalThis.window = {
+			location: {
+				host: "localhost",
+				protocol: "http:",
+				pathname: "/",
+				href: "http://localhost/"
+			},
+			navigator: { userAgent: "node" },
+			innerWidth: 1024,
+			innerHeight: 768,
+			addEventListener() {},
+			removeEventListener() {},
+			document: stubDocument
+		};
+
+		globalThis.document = stubDocument;
+		globalThis.location = globalThis.window.location;
+		globalThis.getComputedStyle = () => ({ getPropertyValue: () => "" });
+	}
 };
 
-Object.assign(MockDate.prototype, {
-	getDate () { return this.date; },
-	setDate (date) { this.date = date; },
-	setHours (h) { this.hours = h; },
-	setMinutes (m) { this.minutes = m; },
-	setSeconds (s) { this.seconds = s; },
-	setMilliseconds (ms) { this.milliseconds = ms; },
-	valueOf () {
-		return (
-			this.milliseconds +
-			this.seconds * 1e3 +
-			this.minutes * 1e3 * 60 +
-			this.hours * 1e3 * 60 * 60 +
-			this.date * 1e3 * 60 * 60 * 24
-		);
+ensureBrowserGlobals();
+
+const carbon = await import("../dist/index.esm.js");
+
+const {
+	changed,
+	hexToRgb,
+	isJsonString,
+	parseMultipleJson
+} = carbon;
+
+const tests = [];
+
+const test = (name, fn) => {
+	tests.push({ name, fn });
+};
+
+test("hexToRgb converts 6-digit hex strings", () => {
+	assert.equal(hexToRgb("#ff00aa"), "255,0,170");
+	assert.equal(hexToRgb("##00ff00"), "0,255,0");
+});
+
+test("isJsonString returns true for valid JSON", () => {
+	assert.equal(isJsonString("{\"a\":1}"), true);
+});
+
+test("isJsonString returns false for invalid JSON", () => {
+	assert.equal(isJsonString("{a:1}"), false);
+});
+
+test("parseMultipleJson returns array for non-string input", () => {
+	const obj = { a: 1 };
+	assert.deepEqual(parseMultipleJson(obj), [obj]);
+});
+
+test("parseMultipleJson parses multiple JSON objects", () => {
+	const input = "{\"a\":1}\n{\"b\":2}\n";
+	assert.deepEqual(parseMultipleJson(input), [{ a: 1 }, { b: 2 }]);
+});
+
+test("changed logs only when values differ", () => {
+	const originalConsole = {
+		group: console.group,
+		log: console.log,
+		groupEnd: console.groupEnd
+	};
+
+	const calls = { group: 0, log: 0, groupEnd: 0 };
+
+	console.group = () => { calls.group += 1; };
+	console.log = () => { calls.log += 1; };
+	console.groupEnd = () => { calls.groupEnd += 1; };
+
+	try {
+		changed("Test", "state", { a: 1, b: 2 }, { a: 1, b: 2 });
+		assert.equal(calls.group, 0);
+		assert.equal(calls.log, 0);
+		assert.equal(calls.groupEnd, 0);
+
+		changed("Test", "state", { a: 1, b: 2 }, { a: 1, b: 3 });
+		assert.equal(calls.group, 1);
+		assert.equal(calls.log, 1);
+		assert.equal(calls.groupEnd, 1);
+	} finally {
+		console.group = originalConsole.group;
+		console.log = originalConsole.log;
+		console.groupEnd = originalConsole.groupEnd;
 	}
 });
 
-const now = new MockDate();
-MockDate.now = () => now.valueOf();
+let failures = 0;
 
-global.Date = MockDate;
-
-function test(hours, minutes, seconds, expected) {
-	now.setHours(hours);
-	now.setMinutes(minutes);
-	now.setSeconds(seconds);
-
-	assert.equal(howLongTillLunch(...lunchtime), expected);
-	console.log(`\u001B[32m✓\u001B[39m ${expected}`);
+for (const { name, fn } of tests) {
+	try {
+		fn();
+		console.log(`ok - ${name}`);
+	} catch (error) {
+		failures += 1;
+		console.error(`not ok - ${name}`);
+		console.error(error);
+	}
 }
 
-let lunchtime = [ 12, 30 ];
-test(11, 30, 0, '1 hour');
-test(10, 30, 0, '2 hours');
-test(12, 25, 0, '5 minutes');
-test(12, 29, 15, '45 seconds');
-test(13, 30, 0, '23 hours');
-
-// some of us like an early lunch
-lunchtime = [ 11, 0 ];
-test(10, 30, 0, '30 minutes');
+if (failures > 0) {
+	process.exitCode = 1;
+}
