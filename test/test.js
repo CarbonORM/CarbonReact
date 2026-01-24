@@ -45,7 +45,7 @@ const ensureBrowserGlobals = () => {
 
 		globalThis.document = stubDocument;
 		globalThis.location = globalThis.window.location;
-		globalThis.navigator = globalThis.window.navigator;
+		globalThis.navigator ??= globalThis.window.navigator;
 		globalThis.getComputedStyle = () => ({ getPropertyValue: () => "" });
 	}
 };
