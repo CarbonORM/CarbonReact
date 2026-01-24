@@ -1,6 +1,8 @@
 import {axiosInstance, checkAllRequestsComplete, isVerbose} from "@carbonorm/carbonnode";
-import {waitFor} from "@testing-library/react";
+import {createRequire} from "module";
 import ValidSQL, {validSQL} from "./validSQL";
+
+const require = createRequire(import.meta.url);
 
 export default function ({sqlDirectory = './logs/rest/', logsDirectory = './logs/tests/'}: {
     sqlDirectory?: string,
@@ -9,6 +11,7 @@ export default function ({sqlDirectory = './logs/rest/', logsDirectory = './logs
 
     const fs = require("fs");
     const {inspect} = require("util");
+    const {waitFor} = require("@testing-library/react");
 
     const originalWindowLocation = window.location.href
 

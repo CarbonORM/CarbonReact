@@ -1,56 +1,9 @@
 import assert from "assert";
 
-const ensureBrowserGlobals = () => {
-	if (!globalThis.window) {
-		const stubHead = {
-			firstChild: null,
-			appendChild() {},
-			insertBefore() {}
-		};
-
-		const stubDocument = {
-			documentElement: {},
-			head: stubHead,
-			body: { appendChild() {}, removeChild() {} },
-			createElement() {
-				return {
-					style: {},
-					styleSheet: null,
-					appendChild() {},
-					setAttribute() {}
-				};
-			},
-			createTextNode() { return {}; },
-			addEventListener() {},
-			removeEventListener() {},
-			getElementById() { return null; },
-			getElementsByTagName() { return [stubHead]; },
-			cookie: ""
-		};
-
-		globalThis.window = {
-			location: {
-				host: "localhost",
-				protocol: "http:",
-				pathname: "/",
-				href: "http://localhost/"
-			},
-			navigator: { userAgent: "node" },
-			innerWidth: 1024,
-			innerHeight: 768,
-			addEventListener() {},
-			removeEventListener() {},
-			document: stubDocument
-		};
-
-		globalThis.document = stubDocument;
-		globalThis.location = globalThis.window.location;
-		globalThis.navigator ??= globalThis.window.navigator;
-		globalThis.getComputedStyle = () => ({ getPropertyValue: () => "" });
-	}
+const ssrGlobals = {
+	hasWindow: typeof globalThis.window !== "undefined",
+	hasDocument: typeof globalThis.document !== "undefined"
 };
-
-ensureBrowserGlobals();
 
 const carbon = await import("../dist/index.esm.js");
 
@@ -70,6 +23,11 @@ const test = (name, fn) => {
 test("hexToRgb converts 6-digit hex strings", () => {
 	assert.equal(hexToRgb("#ff00aa"), "255,0,170");
 	assert.equal(hexToRgb("##00ff00"), "0,255,0");
+});
+
+test("ssr import does not require DOM globals", () => {
+	assert.equal(ssrGlobals.hasWindow, false);
+	assert.equal(ssrGlobals.hasDocument, false);
 });
 
 test("isJsonString returns true for valid JSON", () => {

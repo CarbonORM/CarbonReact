@@ -1,5 +1,6 @@
+import {getEnv} from "./getEnv";
 
-
-const isProduction = window.location.host.split(".")[0] === "www"
+// @ts-ignore
+const isProduction = () => getEnv("NODE_ENV", "") === "production"
 
 export default isProduction

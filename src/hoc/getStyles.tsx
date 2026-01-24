@@ -4,6 +4,10 @@ import Styles from "style.module.css"
 
 export const getRootStyleValue = (property = '--dig_primary_color') : string => {
 
+    if (typeof document === "undefined" || typeof getComputedStyle === "undefined") {
+        return "";
+    }
+
     return getComputedStyle(document.documentElement)
         .getPropertyValue(property).trim();
 

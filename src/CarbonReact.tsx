@@ -51,6 +51,8 @@ export enum eRouterType {
     MemoryRouter,
 }
 
+const canUseDom = () => typeof window !== "undefined" && typeof document !== "undefined";
+
 abstract class CarbonReact<P = {}, S extends iCarbonReactState = iCarbonReactState> extends Component<{
     children?: ReactNode | ReactNode[],
     instanceId?: string,
@@ -105,7 +107,7 @@ abstract class CarbonReact<P = {}, S extends iCarbonReactState = iCarbonReactSta
         ...rest
     });
 
-    static lastLocation = window.location.pathname;
+    static lastLocation = typeof window === "undefined" ? "" : window.location.pathname;
 
     static whyDidYouRender = true;
 
@@ -157,10 +159,10 @@ abstract class CarbonReact<P = {}, S extends iCarbonReactState = iCarbonReactSta
     }
 
     componentDidUpdate(_prevProps: Readonly<P>, _prevState: Readonly<S>, _snapshot?: any) {
-        if (CarbonReact.lastLocation !== location.pathname) {
+        if (typeof location !== "undefined" && CarbonReact.lastLocation !== location.pathname) {
             CarbonReact.lastLocation = location.pathname;
             const websocket = this.state.websocket;
-            if (websocket?.readyState === WebSocket.OPEN) {
+            if (typeof WebSocket !== "undefined" && websocket?.readyState === WebSocket.OPEN) {
                 websocket.send(location.pathname);
                 console.log(location.pathname);
             }
@@ -168,7 +170,8 @@ abstract class CarbonReact<P = {}, S extends iCarbonReactState = iCarbonReactSta
     }
 
     reactRouterContext(children: ReactElement) {
-        switch (this.props.routerType ?? eRouterType.BrowserRouter) {
+        const routerType = this.props.routerType ?? (canUseDom() ? eRouterType.BrowserRouter : eRouterType.MemoryRouter);
+        switch (routerType) {
             case eRouterType.BrowserRouter:
                 return <BrowserRouter>{children}</BrowserRouter>
             case eRouterType.MemoryRouter:
@@ -184,10 +187,13 @@ abstract class CarbonReact<P = {}, S extends iCarbonReactState = iCarbonReactSta
         console.log('CarbonORM TSX RENDER');
 
         const colorHex = '#' + Math.random().toString(16).slice(-6);
+        const canUseDomNow = canUseDom();
 
         console.log('%c color (' + colorHex + ')', 'color: ' + colorHex);
 
-        const nest = <Nest position={'fixed'} backgroundColor={''} color={hexToRgb(colorHex)} count={100}/>;
+        const nest = canUseDomNow
+            ? <Nest position={'fixed'} backgroundColor={''} color={hexToRgb(colorHex)} count={100}/>
+            : null;
 
         if (this.state.backendThrowable.length > 0) {
             return <>
@@ -200,14 +206,14 @@ abstract class CarbonReact<P = {}, S extends iCarbonReactState = iCarbonReactSta
         const Context = this.context.Provider;
 
         return this.reactRouterContext(<>
-            <GlobalHistory/>
-            {this.props.websocket &&
+            {canUseDomNow && <GlobalHistory/>}
+            {canUseDomNow && this.props.websocket &&
                 <CarbonWebSocket<P, S> {...(false !== this.props.websocket ? this.props.websocket : {})}
                                        instance={this}/>}
             <Context value={this.state}>
                 {this.props.children}
             </Context>
-            <ToastContainer/>
+            {canUseDomNow && <ToastContainer/>}
         </>);
     }
 }

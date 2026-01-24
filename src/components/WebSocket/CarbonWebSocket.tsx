@@ -20,11 +20,19 @@ export function initiateWebsocket<P, S extends iCarbonReactState>(props: iCarbon
 
     let {
         instance,
-        url = 'ws' + (window.location.protocol === 'https:' ? 's' : '') + '://' + window.location.host + '/carbonorm/websocket',
+        url,
         timeoutSeconds = 250,
         heartbeatSeconds = 60,
         C6
     } = props;
+
+    if (typeof window === "undefined") {
+        return;
+    }
+
+    if (!url) {
+        url = 'ws' + (window.location.protocol === 'https:' ? 's' : '') + '://' + window.location.host + '/carbonorm/websocket';
+    }
 
     const {
         TABLES = undefined,

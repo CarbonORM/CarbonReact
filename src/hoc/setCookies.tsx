@@ -11,7 +11,7 @@ export default function setCookies(cookies: string[], req: AxiosResponse | undef
             .replace("HttpOnly", "")
             .replace("secure", "");
 
-        if (document === undefined || document === null) {
+        if (typeof document === "undefined" || document === null) {
 
             const getStackTrace = function () {
                 let obj: any = {};

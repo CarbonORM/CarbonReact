@@ -56,7 +56,7 @@ export default function Alert<P, S extends iCarbonReactState>({instance}: { inst
             color: 'danger',
         }];
 
-        const hideExpandInformation = isProduction
+        const hideExpandInformation = isProduction()
 
         if (false === hideExpandInformation) {
             buttons.push({

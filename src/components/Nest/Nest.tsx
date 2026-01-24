@@ -5,6 +5,13 @@ import {toast} from "react-toastify";
 export const range = n =>
     new Array(n).fill(0).map((_, idx) => idx);
 
+const getViewport = () => {
+    if (typeof window === "undefined") {
+        return {width: 0, height: 0};
+    }
+    return {width: window.innerWidth, height: window.innerHeight};
+};
+
 //export const canvasStyle = config =>
 //    `display:block;position:absolute;top:0;left:0;height:100%;width:100%;overflow:hidden;pointer-events:none;z-index:${config.zIndex};opacity:${config.opacity}`;
 
@@ -63,6 +70,9 @@ export default class Nest extends React.Component<NestProps, {
     canvasContext ?: CanvasRenderingContext2D;
 
     componentDidMount() {
+        if (typeof document === "undefined") {
+            return;
+        }
 
         this.canvas = document.getElementById('2d') as HTMLCanvasElement;
 
@@ -105,9 +115,10 @@ export default class Nest extends React.Component<NestProps, {
     }
 
     randomPoints = () => {
+        const {width, height} = getViewport();
         return range(this.props.count).map(() => ({
-            x: Math.random() * window.innerWidth,
-            y: Math.random() * window.innerHeight,
+            x: Math.random() * width,
+            y: Math.random() * height,
             xa: 2 * Math.random() - 1, // 随机运动返现
             ya: 2 * Math.random() - 1,
             max: 6000 // Adhesion distance
@@ -118,10 +129,12 @@ export default class Nest extends React.Component<NestProps, {
     tid = 0;
 
     drawCanvas = () => {
+        if (typeof window === "undefined" || typeof requestAnimationFrame === "undefined") {
+            return;
+        }
 
         const context = this.canvasContext;
-        const width = window.innerWidth;
-        const height = window.innerHeight;
+        const {width, height} = getViewport();
         const current = this.current;
         const points = this.points;
         const all = this.all;
@@ -215,14 +228,15 @@ export default class Nest extends React.Component<NestProps, {
     }
 
     render() {
+        const {width, height} = getViewport();
 
         return (
             <div>
                 {this.props.children}
                 <canvas
                     id={"2d"}
-                    width={window.innerWidth}
-                    height={window.innerHeight}
+                    width={width}
+                    height={height}
                     style={{
                         backgroundColor: this.props.backgroundColor,
                         display:this.props.display,
@@ -238,4 +252,3 @@ export default class Nest extends React.Component<NestProps, {
     }
 
 }
-
