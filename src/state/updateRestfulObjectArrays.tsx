@@ -1,6 +1,6 @@
-import CarbonReact, { iCarbonReactState, tStatefulApiData } from "CarbonReact";
-import { KeysMatching } from "./KeysMatching";
-import { SubsetMatching } from "./SubsetMatching";
+import CarbonReact, { iCarbonReactState, tStatefulApiData } from "core/CarbonReact";
+import { KeysMatching } from "types/KeysMatching";
+import { SubsetMatching } from "types/SubsetMatching";
 
 export enum eUpdateInsertMethod {
     REPLACE,

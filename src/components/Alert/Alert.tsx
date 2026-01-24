@@ -1,11 +1,11 @@
 import classNames from "classnames";
-import CarbonReact, {iCarbonReactState} from "CarbonReact";
+import CarbonReact, {iCarbonReactState} from "core/CarbonReact";
 import {ReactNode} from "react";
 import Popup from "components/Popup/Popup";
-import getStyles from "hoc/getStyles";
+import getStyles from "styles/getStyles";
 import {faClose} from "@fortawesome/free-solid-svg-icons";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import isProduction from "variables/isProduction";
+import isProduction from "env/isProduction";
 
 //  'digBtnBlue': string;
 //   'digBtnGreen': string;
@@ -205,4 +205,3 @@ export default function Alert<P, S extends iCarbonReactState>({instance}: { inst
     </Popup>
 
 }
-

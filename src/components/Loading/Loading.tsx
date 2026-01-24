@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import getStyles, {getRootStyleValue} from "hoc/getStyles";
+import getStyles, {getRootStyleValue} from "styles/getStyles";
 import {ReactNode} from "react";
 import Skeleton, {SkeletonTheme} from "react-loading-skeleton";
 
@@ -34,4 +34,3 @@ export default function Loading(props: iLoading) {
     </div>;
 
 }
-

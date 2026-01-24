@@ -1,5 +1,5 @@
-import CarbonReact, { iCarbonReactState, tStatefulApiData } from "CarbonReact";
-import { KeysMatching } from "./KeysMatching";
+import CarbonReact, { iCarbonReactState, tStatefulApiData } from "core/CarbonReact";
+import { KeysMatching } from "types/KeysMatching";
 
 export interface iDeleteRestfulObjectArrays<
     ObjectType extends {

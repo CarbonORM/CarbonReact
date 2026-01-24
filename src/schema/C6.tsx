@@ -1,4 +1,4 @@
-import { tStatefulApiData } from "CarbonReact";
+import { tStatefulApiData } from "core/CarbonReact";
 
 export interface stringMap {
     [key: string]: string;
@@ -3300,5 +3300,4 @@ export const initialRestfulObjectsState: iRestfulObjectArrayTypes = {
 };
 
 export type tRestfulObjectArrayValues = iRestfulObjectArrayTypes[keyof iRestfulObjectArrayTypes];
-
 

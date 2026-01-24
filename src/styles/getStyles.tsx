@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import BootstrapStyle from "variables/bootstrap.module.css"
+import BootstrapStyle from "styles/bootstrap.module.css"
 import Styles from "style.module.css"
 
 export const getRootStyleValue = (property = '--dig_primary_color') : string => {

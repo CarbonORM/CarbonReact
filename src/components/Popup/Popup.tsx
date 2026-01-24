@@ -1,6 +1,6 @@
 import classNames from "classnames";
 import OutsideClickHandler from '../OutsideClickHandler/OutsideClickHandler';
-import getStyles from "hoc/getStyles";
+import getStyles from "styles/getStyles";
 import {PropsWithChildren, ReactElement} from "react";
 
 
@@ -43,4 +43,3 @@ export default function Popup({
         </div>
 
 }
-

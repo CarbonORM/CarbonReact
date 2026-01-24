@@ -1,6 +1,6 @@
-import CarbonReact, {iCarbonReactState, isJsonString, tStatefulApiData} from "CarbonReact";
+import CarbonReact, {iCarbonReactState, isJsonString, tStatefulApiData} from "core/CarbonReact";
 import {addAlert} from "../Alert/Alert";
-import {useEffectOnce} from "../../api/hoc/useEffectOnce";
+import {useEffectOnce} from "hooks/useEffectOnce";
 import {iC6Object, isVerbose} from "@carbonorm/carbonnode";
 
 

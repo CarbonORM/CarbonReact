@@ -1,15 +1,15 @@
-import changed from "hoc/changed";
-import {GlobalHistory} from "hoc/GlobalHistory";
-import hexToRgb from "hoc/hexToRgb";
+import changed from "utils/changed";
+import {GlobalHistory} from "routing/GlobalHistory";
+import hexToRgb from "utils/hexToRgb";
 import {Component, Context, createContext, ReactElement, ReactNode} from 'react';
 import {ToastContainer} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import BackendThrowable from 'components/Errors/BackendThrowable';
 import Nest from 'components/Nest/Nest';
-import {initialRestfulObjectsState, iRestfulObjectArrayTypes} from "variables/C6";
-import CarbonWebSocket, {iCarbonWebSocketProps} from "./components/WebSocket/CarbonWebSocket";
-import updateRestfulObjectArrays, {iUpdateRestfulObjectArrays} from "./hoc/updateRestfulObjectArrays";
-import deleteRestfulObjectArrays, {iDeleteRestfulObjectArrays} from "./hoc/deleteRestfulObjectArrays";
+import {initialRestfulObjectsState, iRestfulObjectArrayTypes} from "schema/C6";
+import CarbonWebSocket, {iCarbonWebSocketProps} from "components/WebSocket/CarbonWebSocket";
+import updateRestfulObjectArrays, {iUpdateRestfulObjectArrays} from "state/updateRestfulObjectArrays";
+import deleteRestfulObjectArrays, {iDeleteRestfulObjectArrays} from "state/deleteRestfulObjectArrays";
 import {BrowserRouter, HashRouter, MemoryRouter} from "react-router-dom";
 
 export type tStatefulApiData<T extends { [key: string]: any } = {}> = T[] | undefined | null;

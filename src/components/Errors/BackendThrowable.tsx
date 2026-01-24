@@ -1,6 +1,6 @@
 import styles from './style.module.scss';
 import OutsideClickHandler from '../OutsideClickHandler/OutsideClickHandler';
-import CarbonReact, {iCarbonReactState} from "../../CarbonReact";
+import CarbonReact, {iCarbonReactState} from "core/CarbonReact";
 import {ReactElement} from "react";
 
 export default <P,S extends iCarbonReactState>(props: {
