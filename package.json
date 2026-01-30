@@ -5,7 +5,7 @@
     "url": "https://github.com/CarbonORM/CarbonReact"
   },
   "license": "MIT",
-  "version": "6.0.1",
+  "version": "6.0.2",
   "browser": "dist/index.umd.js",
   "type": "module",
   "main": "./dist/index.cjs",

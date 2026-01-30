@@ -46,6 +46,7 @@ export { default as deleteRestfulObjectArrays } from "./state/deleteRestfulObjec
 export * from "./state/deleteRestfulObjectArrays";
 export { default as updateRestfulObjectArrays } from "./state/updateRestfulObjectArrays";
 export * from "./state/updateRestfulObjectArrays";
+export * from "./state/stateAdapter";
 export { default as getStyles } from "./styles/getStyles";
 export * from "./styles/getStyles";
 export { default as addValidSQL } from "./testing/addValidSQL";

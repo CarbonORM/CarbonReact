@@ -11,7 +11,10 @@ const {
 	changed,
 	hexToRgb,
 	isJsonString,
-	parseMultipleJson
+	parseMultipleJson,
+	updateRestfulObjectArrays,
+	eUpdateInsertMethod,
+	InMemoryStateAdapter
 } = carbon;
 
 const tests = [];
@@ -76,6 +79,74 @@ test("changed logs only when values differ", () => {
 		console.log = originalConsole.log;
 		console.groupEnd = originalConsole.groupEnd;
 	}
+});
+
+const clone = (value) => JSON.parse(JSON.stringify(value));
+
+const createSetStateInstance = (initialState) => ({
+	state: clone(initialState),
+	props: {},
+	setState(updater) {
+		const next = typeof updater === "function" ? updater(this.state, this.props) : updater;
+		if (next !== null && next !== undefined) {
+			this.state = { ...this.state, ...next };
+		}
+	}
+});
+
+const runUpdate = (order, mode) => {
+	const initialState = {
+		items: [
+			{ id: 1, name: "one" },
+			{ id: 2, name: "two" }
+		]
+	};
+
+	const updates = [
+		{ id: 2, name: "two-updated" },
+		{ id: 3, name: "three" }
+	];
+
+	if (mode === "adapter") {
+		const adapter = new InMemoryStateAdapter(clone(initialState));
+		const instance = { props: {}, stateAdapter: adapter };
+		updateRestfulObjectArrays({
+			instance,
+			dataOrCallback: updates,
+			stateKey: "items",
+			uniqueObjectId: "id",
+			insertUpdateOrder: order
+		});
+		return adapter.getState().items;
+	}
+
+	const instance = createSetStateInstance(initialState);
+	updateRestfulObjectArrays({
+		instance,
+		dataOrCallback: updates,
+		stateKey: "items",
+		uniqueObjectId: "id",
+		insertUpdateOrder: order
+	});
+	return instance.state.items;
+};
+
+test("updateRestfulObjectArrays preserves LAST ordering in adapter mode", () => {
+	const setStateResult = runUpdate(eUpdateInsertMethod.LAST, "setState");
+	const adapterResult = runUpdate(eUpdateInsertMethod.LAST, "adapter");
+	assert.deepEqual(adapterResult, setStateResult);
+});
+
+test("updateRestfulObjectArrays preserves FIRST ordering in adapter mode", () => {
+	const setStateResult = runUpdate(eUpdateInsertMethod.FIRST, "setState");
+	const adapterResult = runUpdate(eUpdateInsertMethod.FIRST, "adapter");
+	assert.deepEqual(adapterResult, setStateResult);
+});
+
+test("updateRestfulObjectArrays preserves REPLACE ordering in adapter mode", () => {
+	const setStateResult = runUpdate(eUpdateInsertMethod.REPLACE, "setState");
+	const adapterResult = runUpdate(eUpdateInsertMethod.REPLACE, "adapter");
+	assert.deepEqual(adapterResult, setStateResult);
 });
 
 let failures = 0;

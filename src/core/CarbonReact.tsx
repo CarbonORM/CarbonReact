@@ -8,6 +8,7 @@ import {initialRestfulObjectsState, iRestfulObjectArrayTypes} from "schema/C6";
 import CarbonWebSocket, {iCarbonWebSocketProps} from "components/WebSocket/CarbonWebSocket";
 import updateRestfulObjectArrays, {iUpdateRestfulObjectArrays} from "state/updateRestfulObjectArrays";
 import deleteRestfulObjectArrays, {iDeleteRestfulObjectArrays} from "state/deleteRestfulObjectArrays";
+import { iStateAdapter } from "state/stateAdapter";
 import {BrowserRouter, HashRouter, MemoryRouter} from "react-router-dom";
 
 export type tStatefulApiData<T extends { [key: string]: any } = {}> = T[] | undefined | null;
@@ -56,7 +57,8 @@ abstract class CarbonReact<P = {}, S extends iCarbonReactState = iCarbonReactSta
     instanceId?: string,
     persistentState?: boolean,
     routerType?: eRouterType,
-    websocket?: Omit<iCarbonWebSocketProps<P, S>, "instance"> | false
+    websocket?: Omit<iCarbonWebSocketProps<P, S>, "instance"> | false,
+    stateAdapter?: iStateAdapter<S>
 } & P, S> {
 
     private static allInstances = new Map<string, CarbonReact<any, any>>();
@@ -114,6 +116,7 @@ abstract class CarbonReact<P = {}, S extends iCarbonReactState = iCarbonReactSta
         websocket?: boolean | iCarbonWebSocketProps<P, S> | undefined;
         instanceId?: string; // Optional instanceId from props
         persistentState?: boolean; // Optional persistentState from props
+        stateAdapter?: iStateAdapter<S>;
     } & P) {
         super(props);
 
@@ -128,12 +131,15 @@ abstract class CarbonReact<P = {}, S extends iCarbonReactState = iCarbonReactSta
         }
 
         this.target = new.target;
+        this.stateAdapter = props.stateAdapter;
         console.log('CarbonORM TSX CONSTRUCTOR');
 
         Object.assign(this.target, {
             _instance: this
         });
     }
+
+    public stateAdapter?: iStateAdapter<S>;
 
     private static generateIdentifier(instanceId?: string): string {
         const className = this.name;

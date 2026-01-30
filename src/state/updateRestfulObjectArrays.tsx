@@ -1,6 +1,7 @@
 import CarbonReact, { iCarbonReactState, tStatefulApiData } from "core/CarbonReact";
 import { KeysMatching } from "types/KeysMatching";
 import { SubsetMatching } from "types/SubsetMatching";
+import { iStateAdapter } from "./stateAdapter";
 
 export enum eUpdateInsertMethod {
     REPLACE,
@@ -21,6 +22,7 @@ export interface iUpdateRestfulObjectArrays<
     uniqueObjectId: keyof ObjectType | (keyof ObjectType)[];
     insertUpdateOrder?: eUpdateInsertMethod;
     callback?: () => void;
+    stateAdapter?: iStateAdapter<S>;
 }
 
 /**
@@ -45,16 +47,18 @@ export default function updateRestfulObjectArrays<
       uniqueObjectId,
       insertUpdateOrder = eUpdateInsertMethod.LAST,
       callback,
+      stateAdapter,
   }: iUpdateRestfulObjectArrays<ObjectType, S, P>): void {
 
     const uniqueObjectIds = Array.isArray(uniqueObjectId) ? uniqueObjectId : [uniqueObjectId];
+    const resolvedStateAdapter = stateAdapter ?? instance.stateAdapter;
 
     type ValidObject = SubsetMatching<S & iCarbonReactState, tStatefulApiData<ObjectType>>;
 
-    instance.setState((
-            previousBootstrapState: Readonly<S>,
-            props: Readonly<P>
-        ): Pick<S & iCarbonReactState, keyof S> | null => {
+    const computeNextState = (
+        previousBootstrapState: Readonly<S>,
+        props: Readonly<P>
+    ): Pick<S & iCarbonReactState, keyof S> | null => {
 
         let newOrReplacementData: ObjectType[] | null = [];
 
@@ -125,7 +129,17 @@ export default function updateRestfulObjectArrays<
             }
 
             return newState as Pick<S & iCarbonReactState, keyof S>;
-        },
-        callback
-    );
+        };
+
+    if (resolvedStateAdapter) {
+        const previousBootstrapState = resolvedStateAdapter.getState();
+        const nextState = computeNextState(previousBootstrapState, instance.props as Readonly<P>);
+        if (nextState !== null) {
+            resolvedStateAdapter.setState(nextState as Partial<S>);
+            callback?.();
+        }
+        return;
+    }
+
+    instance.setState(computeNextState, callback);
 }

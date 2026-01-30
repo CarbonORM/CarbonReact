@@ -1,5 +1,6 @@
 import CarbonReact, { iCarbonReactState, tStatefulApiData } from "core/CarbonReact";
 import { KeysMatching } from "types/KeysMatching";
+import { iStateAdapter } from "./stateAdapter";
 
 export interface iDeleteRestfulObjectArrays<
     ObjectType extends {
@@ -12,7 +13,8 @@ export interface iDeleteRestfulObjectArrays<
     dataOrCallback: ObjectType[] | ((state: Readonly<S>, props: Readonly<P>) => ObjectType[] | null),
     stateKey: KeysMatching<S, tStatefulApiData<ObjectType>>,
     uniqueObjectId: keyof ObjectType | (keyof ObjectType)[],
-    callback?: () => void
+    callback?: () => void,
+    stateAdapter?: iStateAdapter<S>
 }
 
 export default function deleteRestfulObjectArrays<
@@ -26,12 +28,14 @@ export default function deleteRestfulObjectArrays<
       dataOrCallback,
       stateKey,
       uniqueObjectId,
-      callback
+      callback,
+      stateAdapter
   }: iDeleteRestfulObjectArrays<ObjectType, S, P>): void {
 
     const uniqueObjectIds = Array.isArray(uniqueObjectId) ? uniqueObjectId : [uniqueObjectId];
+    const resolvedStateAdapter = stateAdapter ?? instance.stateAdapter;
 
-    instance.setState((
+    const computeNextState = (
         previousBootstrapState: Readonly<S & iCarbonReactState>,
         props: Readonly<P>
     ): Pick<S & iCarbonReactState, keyof S> | null => {
@@ -72,5 +76,17 @@ export default function deleteRestfulObjectArrays<
             [stateKey]: updatedStateProperty
         } as Pick<S & iCarbonReactState, keyof S>;
 
-    }, callback);
+    };
+
+    if (resolvedStateAdapter) {
+        const previousBootstrapState = resolvedStateAdapter.getState();
+        const nextState = computeNextState(previousBootstrapState, instance.props as Readonly<P>);
+        if (nextState !== null) {
+            resolvedStateAdapter.setState(nextState as Partial<S>);
+            callback?.();
+        }
+        return;
+    }
+
+    instance.setState(computeNextState, callback);
 }
