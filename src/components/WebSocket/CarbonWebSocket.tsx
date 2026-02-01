@@ -125,21 +125,11 @@ export function initiateWebsocket<P, S extends iCarbonReactState>(props: iCarbon
 
                     const REQUEST_PRIMARY_KEY: {
                         [key: string]: string
-                    } = parsedData?.REST?.REQUEST_PRIMARY_KEY ?? null;
-
-                    if (null === REQUEST_PRIMARY_KEY) {
-
-                        if (verbose) {
-                            console.log('WebSocket updates without a primary key are not yet supported.');
-                        }
-
-                        return;
-
-                    }
-
-                    if (verbose) {
-                        console.log('todo - going to impl REST', TABLE_NAME, METHOD, REQUEST_PRIMARY_KEY, parsedData?.REST);
-                    }
+                    } | null = parsedData?.REST?.REQUEST_PRIMARY_KEY ?? null;
+                    const RESPONSE_PRIMARY_KEY: {
+                        [key: string]: string
+                    } | null = parsedData?.REST?.RESPONSE_PRIMARY_KEY ?? null;
+                    const RESPONSE = parsedData?.REST?.RESPONSE ?? null;
 
                     const TABLE_NAME_SHORT = TABLE_NAME.startsWith(TABLE_PREFIX)
                         ? TABLE_NAME.substring(TABLE_PREFIX.length)
@@ -175,19 +165,28 @@ export function initiateWebsocket<P, S extends iCarbonReactState>(props: iCarbon
                         return normalized;
                     };
 
-                    const normalizedPrimaryKey = normalizeRecord(REQUEST_PRIMARY_KEY);
-                    const primaryKeyKeys = Object.keys(normalizedPrimaryKey);
+                    const normalizedPrimaryKey = normalizeRecord(REQUEST_PRIMARY_KEY ?? {});
+                    const normalizedResponsePrimaryKey = normalizeRecord(RESPONSE_PRIMARY_KEY ?? {});
+                    const primaryKeyKeys = Object.keys(
+                        Object.keys(normalizedPrimaryKey).length
+                            ? normalizedPrimaryKey
+                            : normalizedResponsePrimaryKey
+                    );
 
                     if (primaryKeyKeys.length === 0) {
                         if (verbose) {
-                            console.error('WebSocket update could not map primary keys for', TABLE_NAME_SHORT, REQUEST_PRIMARY_KEY);
+                            console.error('WebSocket update could not map primary keys for', TABLE_NAME_SHORT, REQUEST_PRIMARY_KEY, RESPONSE_PRIMARY_KEY);
                         }
                         return;
                     }
 
                     // todo - which direction should we filter
                     const elementsToUpdate = currentCache?.filter((row: any) =>
-                        primaryKeyKeys.every((key) => normalizedPrimaryKey[key] === row[key])
+                        primaryKeyKeys.every((key) => {
+                            const expected =
+                                normalizedPrimaryKey[key] ?? normalizedResponsePrimaryKey[key];
+                            return expected === row[key];
+                        })
                     ) ?? []
 
                     if (verbose) {
@@ -195,6 +194,17 @@ export function initiateWebsocket<P, S extends iCarbonReactState>(props: iCarbon
                     }
 
                     if (elementsToUpdate.length === 0) {
+                        if (RESPONSE) {
+                            const responseRows = Array.isArray(RESPONSE) ? RESPONSE : [RESPONSE];
+                            const normalizedResponseRows = responseRows.map((row) => normalizeRecord(row as any));
+                            instance.updateRestfulObjectArrays({
+                                dataOrCallback: normalizedResponseRows,
+                                stateKey: TABLE_NAME_SHORT as any,
+                                uniqueObjectId: c6Table.PRIMARY_SHORT as any,
+                            });
+                            return;
+                        }
+
                         if (verbose) {
                             console.error('Could not find any elements to update in the cache.', elementsToUpdate, primaryKeyKeys, REQUEST_PRIMARY_KEY, currentCache);
                         }
@@ -258,61 +268,34 @@ export function initiateWebsocket<P, S extends iCarbonReactState>(props: iCarbon
 
             }
 
-            // See https://www.rfc-editor.org/rfc/rfc6455#section-7.4.1
-            switch (event.code) {
-                case 1000:
-                    reason = "Normal closure, meaning that the purpose for which the connection was established has been fulfilled.";
-                    break;
-                case 1001:
-                    retry(); //call check function after timeout
-                    reason = "An endpoint is \"going away\", such as a server going down or a browser having navigated away from a page.";
-                    break;
-                case 1002:
-                    reason = "An endpoint is terminating the connection due to a protocol error";
-                    break;
-                case 1003:
-                    reason = "An endpoint is terminating the connection because it has received a type of data it cannot accept (e.g., an endpoint that understands only text data MAY send this if it receives a binary message).";
-                    break;
-                case 1004:
-                    reason = "Reserved. The specific meaning might be defined in the future.";
-                    break;
-                case 1005:
-                    reason = "No status code was actually present.";
-                    break;
-                case 1006:
-                    retry();
-                    reason = "The connection was closed abnormally, e.g., without sending or receiving a close control frame";
-                    break;
-                case 1007:
-                    reason = "An endpoint is terminating the connection because it has received data within a message that was not consistent with the type of the message (e.g., non-UTF-8 [https://www.rfc-editor.org/rfc/rfc3629] data within a text message).";
-                    break;
-                case 1008:
-                    reason = "An endpoint is terminating the connection because it has received a message that \"violates its policy\". This reason is given either if there is no other suitable reason, or if there is a need to hide specific details about the policy.";
-                    break;
-                case 1009:
-                    reason = "An endpoint is terminating the connection because it has received a message that is too big for it to process.";
-                    break;
-                case 1010:
-                    reason = "An endpoint (client) is terminating the connection because it has expected the server to negotiate one or more extension, but the server didn't return them in the response message of the WebSocket handshake. <br /> Specifically, the extensions that are needed are: " + event.reason;
-                    break;
-                case 1011:
-                    reason = "A server is terminating the connection because it encountered an un expected condition that prevented it from fulfilling the request.";
-                    break;
-                case 1015:
-                    reason = "The connection was closed due to a failure to perform a TLS handshake (e.g., the server certificate can't be verified).";
-                    break;
-                default:
-                    reason = "Unknown reason";
+            if (event.code === 1000) {
+                console.log("WebSocket: closed cleanly");
+                return;
             }
 
-            console.log("The connection was closed for reason: " + reason);
+            switch (event.code) {
+                case 1006:
+                    reason = "Abnormal closure";
+                    break;
+                case 1001:
+                    reason = "Going away";
+                    break;
+                case 1011:
+                    reason = "Internal server error";
+                    break;
+                default:
+                    reason = "Unknown";
+            }
+
+            console.log(`WebSocket: closed with code ${event.code} (${reason})`)
+
+            retry();
 
         });
 
         // websocket onerror event listener
         connection.addEventListener('websocket error', (e: Event) => {
-            console.error("Socket encountered error: ", e, JSON.stringify(e));
-            connection.close();
+            console.error("WebSocket error observed:", e);
         });
 
     });
@@ -322,11 +305,8 @@ export function initiateWebsocket<P, S extends iCarbonReactState>(props: iCarbon
 export default function <P, S extends iCarbonReactState>(props: iCarbonWebSocketProps<P, S>) {
 
     useEffectOnce(() => {
-
-        initiateWebsocket(props)
-
+        initiateWebsocket(props);
     })
 
-    return null
-
+    return null;
 }
