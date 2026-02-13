@@ -132,7 +132,6 @@ abstract class CarbonReact<P = {}, S extends iCarbonReactState = iCarbonReactSta
 
         this.target = new.target;
         this.stateAdapter = props.stateAdapter;
-        console.log('CarbonORM TSX CONSTRUCTOR');
 
         Object.assign(this.target, {
             _instance: this

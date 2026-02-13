@@ -5,7 +5,7 @@
     "url": "https://github.com/CarbonORM/CarbonReact"
   },
   "license": "MIT",
-  "version": "6.0.3",
+  "version": "6.0.4",
   "browser": "dist/index.umd.js",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -23,7 +23,7 @@
     "react-dom": "^19.1.0"
   },
   "dependencies": {
-    "@carbonorm/carbonnode": "^6.0.1",
+    "@carbonorm/carbonnode": "^6.0.20",
     "@fortawesome/fontawesome-svg-core": "^6.4.0",
     "@fortawesome/free-solid-svg-icons": "^6.4.0",
     "@fortawesome/react-fontawesome": "^0.2.0",
