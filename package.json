@@ -5,7 +5,7 @@
     "url": "https://github.com/CarbonORM/CarbonReact"
   },
   "license": "MIT",
-  "version": "6.0.4",
+  "version": "6.0.5",
   "browser": "dist/index.umd.js",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -82,9 +82,9 @@
   "scripts": {
     "prepublishOnly": "npm run build",
     "c6": "wget https://raw.githubusercontent.com/RichardTMiles/CarbonPHP/lts/view/C6.tsx -O src/variables/C6.tsx",
-    "build": "rm -rf ./dist/ ./src/api/rest/ && npm run build:css && npm run build:index && rollup -c && npm run build:compileValidSQL",
+    "build": "rm -rf ./dist/ ./src/api/rest/ && npm run build:css && npm run build:index && rollup -c && node scripts/portable-declarations.mjs && npm run build:compileValidSQL",
     "dev": "rollup -c -w",
-    "test": "node test/test.js",
+    "test": "node --test scripts/portable-declarations.test.mjs && node test/test.js",
     "pretest": "npm run build",
     "build:index": "npx barrelsby --directory ./src --delete --exclude '(jestHoc|\\.test|\\.d).(js|tsx?)$' --exportDefault --verbose --mode top",
     "build:css": "sass ./src:./src && typed-scss-modules 'src/**/*.?(s)css' --nameFormat all --exportType default src",
