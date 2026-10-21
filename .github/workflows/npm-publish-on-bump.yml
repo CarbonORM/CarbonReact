@@ -17,6 +17,19 @@ jobs:
     permissions:
       contents: read
       id-token: none
+    services:
+      mysql:
+        # Same reviewed MySQL 8.0 image as CarbonNode; no external setup action.
+        image: mysql@sha256:7dcddc01f13bab2f15cde676d44d01f61fc9f99fe7785e86196dfc07d358ae2b
+        env:
+          MYSQL_ROOT_PASSWORD: password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -ppassword --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=12
 
     steps:
       - name: Checkout
@@ -34,16 +47,18 @@ jobs:
 
       - run: npm whoami || echo "OIDC mode (expected)"
 
-      - uses: shogo82148/actions-setup-mysql@v1
-        with:
-          mysql-version: "8.0"
-          root-password: password
-          my-cnf: |
-            innodb_log_file_size=256MB
-            innodb_buffer_pool_size=512MB
-            max_allowed_packet=16MB
-            max_connections=50
-            local_infile=1
+      - name: Install MySQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y default-mysql-client
+
+      - name: Test job-local MySQL transport
+        run: node --test scripts/mysql-loopback.test.mjs
+
+      - name: Start job-local MySQL transport
+        id: mysql_loopback
+        if: github.server_url == 'https://git.miles.systems'
+        run: node scripts/mysql-loopback.mjs start --state "$RUNNER_TEMP/carbonorm-mysql-loopback"
 
       - name: Setup MySQL client config
         run: |
@@ -56,13 +71,32 @@ jobs:
           protocol=tcp
           EOF
           chmod 600 ~/my.cnf
+          # MySQL 8.0.30+ replaces the original 2 x 256MiB redo files with
+          # the equivalent 512MiB total capacity. All five settings are checked.
+          MYSQL_SETTINGS=$(mysql --defaults-file="$HOME/my.cnf" --batch --skip-column-names <<'SQL'
+          SET GLOBAL innodb_redo_log_capacity = 536870912;
+          SET GLOBAL innodb_buffer_pool_size = 536870912;
+          SET GLOBAL max_allowed_packet = 16777216;
+          SET GLOBAL max_connections = 50;
+          SET GLOBAL local_infile = 1;
+          SELECT VERSION(), @@GLOBAL.innodb_redo_log_capacity, @@GLOBAL.innodb_buffer_pool_size, @@GLOBAL.max_allowed_packet, @@GLOBAL.max_connections, @@GLOBAL.local_infile;
+          SQL
+          )
+          MYSQL_SETTINGS="$MYSQL_SETTINGS" node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          const fields = process.env.MYSQL_SETTINGS.split('\t');
+          const version = /^8\.0\.(\d+)(?:[-.].*)?$/.exec(fields[0]);
+          assert.ok(version && Number(version[1]) >= 30, 'MYSQL_VERSION_REFUSED');
+          assert.deepEqual(fields.slice(1), ['536870912', '536870912', '16777216', '50', '1'], 'MYSQL_SETTINGS_REFUSED');
+          console.log('MYSQL_CONFIGURATION_VERIFIED');
+          NODE
 
       - name: Load schema
         if: hashFiles('src/__tests__/sakila-db/sakila-schema.sql') != ''
         run: |
-          mysql --defaults-file=~/my.cnf -e "CREATE DATABASE IF NOT EXISTS sakila;"
-          mysql --defaults-file=~/my.cnf sakila < src/__tests__/sakila-db/sakila-schema.sql
-          mysql --defaults-file=~/my.cnf sakila < src/__tests__/sakila-db/sakila-data.sql
+          mysql --defaults-file="$HOME/my.cnf" -e "CREATE DATABASE IF NOT EXISTS sakila;"
+          mysql --defaults-file="$HOME/my.cnf" sakila < src/__tests__/sakila-db/sakila-schema.sql
+          mysql --defaults-file="$HOME/my.cnf" sakila < src/__tests__/sakila-db/sakila-data.sql
 
       - name: Read package name & version
         id: pkg
@@ -155,6 +189,10 @@ jobs:
           if-no-files-found: error
           retention-days: 3
 
+      - name: Stop owned job-local MySQL transport
+        if: always() && (steps.mysql_loopback.outcome == 'success' || steps.mysql_loopback.outcome == 'failure')
+        run: node scripts/mysql-loopback.mjs stop --state "$RUNNER_TEMP/carbonorm-mysql-loopback"
+
   publish:
     needs: check
     if: github.event_name == 'push' && github.ref == 'refs/heads/lts' && vars.CARBONORM_NPM_PUBLICATION_ENABLED == 'true'
@@ -162,6 +200,19 @@ jobs:
     permissions:
       contents: read
       id-token: write
+    services:
+      mysql:
+        # Same reviewed MySQL 8.0 image as CarbonNode; no external setup action.
+        image: mysql@sha256:7dcddc01f13bab2f15cde676d44d01f61fc9f99fe7785e86196dfc07d358ae2b
+        env:
+          MYSQL_ROOT_PASSWORD: password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -ppassword --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=12
 
     steps:
       - name: Checkout
@@ -179,16 +230,18 @@ jobs:
 
       - run: npm whoami || echo "OIDC mode (expected)"
 
-      - uses: shogo82148/actions-setup-mysql@v1
-        with:
-          mysql-version: "8.0"
-          root-password: password
-          my-cnf: |
-            innodb_log_file_size=256MB
-            innodb_buffer_pool_size=512MB
-            max_allowed_packet=16MB
-            max_connections=50
-            local_infile=1
+      - name: Install MySQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y default-mysql-client
+
+      - name: Test job-local MySQL transport
+        run: node --test scripts/mysql-loopback.test.mjs
+
+      - name: Start job-local MySQL transport
+        id: mysql_loopback
+        if: github.server_url == 'https://git.miles.systems'
+        run: node scripts/mysql-loopback.mjs start --state "$RUNNER_TEMP/carbonorm-mysql-loopback"
 
       - name: Setup MySQL client config
         run: |
@@ -201,13 +254,32 @@ jobs:
           protocol=tcp
           EOF
           chmod 600 ~/my.cnf
+          # MySQL 8.0.30+ replaces the original 2 x 256MiB redo files with
+          # the equivalent 512MiB total capacity. All five settings are checked.
+          MYSQL_SETTINGS=$(mysql --defaults-file="$HOME/my.cnf" --batch --skip-column-names <<'SQL'
+          SET GLOBAL innodb_redo_log_capacity = 536870912;
+          SET GLOBAL innodb_buffer_pool_size = 536870912;
+          SET GLOBAL max_allowed_packet = 16777216;
+          SET GLOBAL max_connections = 50;
+          SET GLOBAL local_infile = 1;
+          SELECT VERSION(), @@GLOBAL.innodb_redo_log_capacity, @@GLOBAL.innodb_buffer_pool_size, @@GLOBAL.max_allowed_packet, @@GLOBAL.max_connections, @@GLOBAL.local_infile;
+          SQL
+          )
+          MYSQL_SETTINGS="$MYSQL_SETTINGS" node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          const fields = process.env.MYSQL_SETTINGS.split('\t');
+          const version = /^8\.0\.(\d+)(?:[-.].*)?$/.exec(fields[0]);
+          assert.ok(version && Number(version[1]) >= 30, 'MYSQL_VERSION_REFUSED');
+          assert.deepEqual(fields.slice(1), ['536870912', '536870912', '16777216', '50', '1'], 'MYSQL_SETTINGS_REFUSED');
+          console.log('MYSQL_CONFIGURATION_VERIFIED');
+          NODE
 
       - name: Load schema
         if: hashFiles('src/__tests__/sakila-db/sakila-schema.sql') != ''
         run: |
-          mysql --defaults-file=~/my.cnf -e "CREATE DATABASE IF NOT EXISTS sakila;"
-          mysql --defaults-file=~/my.cnf sakila < src/__tests__/sakila-db/sakila-schema.sql
-          mysql --defaults-file=~/my.cnf sakila < src/__tests__/sakila-db/sakila-data.sql
+          mysql --defaults-file="$HOME/my.cnf" -e "CREATE DATABASE IF NOT EXISTS sakila;"
+          mysql --defaults-file="$HOME/my.cnf" sakila < src/__tests__/sakila-db/sakila-schema.sql
+          mysql --defaults-file="$HOME/my.cnf" sakila < src/__tests__/sakila-db/sakila-data.sql
 
       - name: Read package name & version
         id: pkg
@@ -250,3 +322,7 @@ jobs:
       - name: Skip (already published)
         if: steps.exists.outputs.published == 'true'
         run: echo "Version already on npm; skipping publish."
+
+      - name: Stop owned job-local MySQL transport
+        if: always() && (steps.mysql_loopback.outcome == 'success' || steps.mysql_loopback.outcome == 'failure')
+        run: node scripts/mysql-loopback.mjs stop --state "$RUNNER_TEMP/carbonorm-mysql-loopback"
